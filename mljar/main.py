@@ -1,13 +1,16 @@
-from client import MljarClient
+from mljar_client import MljarClient
 
-mljar_client = MljarClient(token = 'your_token')
-#mljar_client.get_projects()
-#mljar_client.get_project_details('YPVd39E43ODn')
-
-#mljar_client.create_project(title="MLJAR-API-2", description='Auto', task='bin_class')
-
+from mljar import Mljar
+import pandas as pd
 
 fname = '/home/piotr/webs/mljar/test/data/binary_part_iris_converted.csv'
-mljar_client.add_new_dataset(project_hid='pWovmM0N3YEy', title='train', file_path=fname)
 
-#mljar_client.get_projects()
+df = pd.read_csv(fname)
+print 'Data shape', df.shape
+print 'Data columns', df.columns
+#print df['class'].columns
+cols = ['sepal length', 'sepal width', 'petal length', 'petal width']
+#print df[cols].columns
+
+model = Mljar(project_title = 'Example-Api', experiment_title = 'Experiment 1')
+model.fit(X = df[cols], y = df['class'])
