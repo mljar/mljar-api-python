@@ -54,6 +54,7 @@ class Client(object):
             'experiment':   '/'.join([self.API_ENDPOINT, API_VERSION, 'experiments']),
             'result':       '/'.join([self.API_ENDPOINT, API_VERSION, 'results']),
             's3policy':     '/'.join([self.API_ENDPOINT, API_VERSION, 's3policy/']),
+            'accept_column_usage': '/'.join([self.API_ENDPOINT, API_VERSION, 'accept_column_usage/']),
         }
         print 'URL', self._urls, 'TOKEN', self.TOKEN
 
@@ -69,7 +70,7 @@ class Client(object):
             if my_url == '':
                 raise Exception('Wrong URL address')
             if url_additional != '':
-                my_url += '/' + url_additional
+                my_url += url_additional
 
             print 'MY URL', my_url
             if request_type == 'get':

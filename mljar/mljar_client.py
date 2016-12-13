@@ -34,7 +34,7 @@ class MljarClient(Client):
         '''
             Print out project details and return details json.
         '''
-        response = self._make_request(url_name = 'project', request_type = 'get', url_additional = project_hid)
+        response = self._make_request(url_name = 'project', request_type = 'get', url_additional = '/' + project_hid)
         details = self._get_data(response)
         if verbose:
             print '-'*50,'\nProject details\n','-'*50
@@ -61,6 +61,18 @@ class MljarClient(Client):
         details = self._get_data(response)
         return details
 
+    def get_datasets(self, project_hid):
+        response = self._make_request(url_name = 'dataset', request_type = 'get', url_additional = '?project_id='+project_hid)
+        details = self._get_data(response)
+        return details
+
+    def accept_dataset_column_usage(self, dataset_hid):
+        data = {'dataset_id': dataset_hid}
+        response = self._make_request(url_name = 'accept_column_usage', request_type = 'post', input_json = data)
+        details = self._get_data(response)
+        return details
+
+
     def _get_signed_url(self, project_hid, file_path):
         response = self._make_request(url_name = 's3policy', request_type = 'post',
                                         input_json = {'project_hid':project_hid,
@@ -74,9 +86,10 @@ class MljarClient(Client):
             print 'Uploaded successfully'
         response.raise_for_status()
 
-    def add_new_dataset(self, project_hid, title, file_path, prediction_only = False):
-        print 'Add new dataset', project_hid, title, file_path
+    def add_new_dataset(self, project_hid, title, file_path, prediction_only=False):
+        print 'Add new dataset:', project_hid, title, file_path
         url_data = self._get_signed_url(project_hid, file_path)
+
         signed_url = url_data['signed_url']
         dst_path   = url_data['destination_path']
         self._upload_file_to_s3(signed_url, file_path)
