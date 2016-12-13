@@ -125,11 +125,32 @@ class Mljar(MljarClient):
         if my_dataset['valid'] != 1:
             raise Exception('Sorry, your dataset can not be understand by MLJAR. Please report this to us - we will fix it.')
 
-        details = self.accept_dataset_column_usage(my_dataset['hid'])
-        print 'Accept details', details
-        dataset_hid = ''
-        dataset_title = ''
-        dataset_preproc = ''
+        if my_dataset['accepted'] == 0:
+            print 'Accept dataset ...'
+            details = self.accept_dataset_column_usage(my_dataset['hid'])
+            print 'Accept details', details
+            # and refresh dataset
+            datasets = self.get_datasets(project_hid = project_details['hid'])
+            my_dataset = [d for d in datasets if d['title'] == self.dataset_title]
+            if len(my_dataset) == 0:
+                raise Exception('Can not find dataset')
+            my_dataset = my_dataset[0]
+
+        print 'MY DATASET', my_dataset
+
+
+
+        dataset_hid = my_dataset['hid']
+        dataset_title = my_dataset['title']
+        dataset_preproc = {}
+        # default preprocessing
+        if len(my_dataset['column_usage_min']['cols_to_fill_na']) > 0:
+            dataset_preproc['na_fill'] = 'na_fill_median'
+            print 'There are missing values in dataset which will be filled with median.'
+        if len(my_dataset['column_usage_min']['cols_to_convert_categorical']) > 0:
+            dataset_preproc['convert_categorical'] = 'categorical_to_int'
+            print 'There are categorical attributes which will be coded as integers.'
+
 
         # create a new experiment
         if self.validation is None or self.validation == '' or self.validation not in MLJAR_VALIDATIONS:
@@ -150,7 +171,7 @@ class Mljar(MljarClient):
         }
 
         print 'Experiment setup', experiment_setup
-
+        #self.create_experiment(experiment_setup)
 
     def fit(self, X, y):
         print 'MLJAR fit ...'

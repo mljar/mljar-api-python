@@ -115,3 +115,10 @@ class MljarClient(Client):
             print 'Dataset successfully created'
         details = self._get_data(response)
         return details
+
+    def create_experiment(self, data):
+        response = self._make_request(url_name = 'experiment', request_type = 'post', input_json = data)
+        if response.status_code == 201:
+            print 'Experiment successfully created'
+        details = self._get_data(response)
+        return details
