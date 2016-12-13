@@ -61,7 +61,7 @@ class Client(object):
     def _make_request(self, url_name = '', custom_url = '', request_type = 'get', url_additional = '', input_json = {}, with_header = True):
         try:
             response = None
-            headers = {'Authorization': 'Token '+self.TOKEN}
+            headers = {'Authorization': 'Token '+self.TOKEN } #'Content-Type': 'application/json'
             my_url = ''
             if url_name in self._urls:
                 my_url = self._urls[url_name]

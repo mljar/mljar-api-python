@@ -159,19 +159,34 @@ class Mljar(MljarClient):
             self.metric = MLJAR_DEFAULT_METRICS[self.project_task]
         if self.tuning_mode is None or  self.tuning_mode == '' or self.tuning_mode not in MLJAR_TUNING_MODES:
             self.tuning_mode = MLJAR_DEFAULT_TUNING_MODE
+        if self.algorithms is None or self.algorithms == [] or self.algorithms == '':
+            self.algorithms = MLJAR_DEFAULT_ALGORITHMS[self.project_task]
 
-        experiment_setup = {
-            'train_dataset': {'id': dataset_hid, 'title': dataset_title},
-            'preproc': dataset_preproc,
-            'algs': self.algorithms,
-            'ensemble': self.create_enseble,
-            'random_start_cnt': MLJAR_TUNING_MODES[self.tuning_mode]['random_start_cnt'],
-            'hill_climbing_cnt': MLJAR_TUNING_MODES[self.tuning_mode]['hill_climbing_cnt'],
-            'single_limit': self.time_constraint
+        data = {
+            'title': self.experiment_title,
+            'description': 'Auto generated ML experiment',
+            'metric': self.metric,
+            'validation_scheme': self.validation,
+            'task': self.project_task,
+            'compute_now': 1,
+            'parent_project': project_details['hid'],
+            'params': str(json.dumps({
+                'train_dataset': {'id': dataset_hid, 'title': dataset_title},
+                'preproc': dataset_preproc,
+                'algs': self.algorithms,
+                'ensemble': self.create_enseble,
+                'random_start_cnt': MLJAR_TUNING_MODES[self.tuning_mode]['random_start_cnt'],
+                'hill_climbing_cnt': MLJAR_TUNING_MODES[self.tuning_mode]['hill_climbing_cnt'],
+                'single_limit': self.time_constraint
+            }))
         }
 
-        print 'Experiment setup', experiment_setup
-        #self.create_experiment(experiment_setup)
+        '''
+
+        '''
+
+        print 'Experiment setup', data
+        self.create_experiment(data)
 
     def fit(self, X, y):
         print 'MLJAR fit ...'
