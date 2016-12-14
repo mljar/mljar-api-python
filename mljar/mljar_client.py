@@ -122,3 +122,14 @@ class MljarClient(Client):
             print 'Experiment successfully created'
         details = self._get_data(response)
         return details
+
+    def get_experiments(self, project_hid):
+        response = self._make_request(url_name = 'experiment', request_type = 'get', url_additional = '?project_id='+project_hid)
+        details = self._get_data(response)
+        return details
+
+    def get_results(self, project_hid):
+        data = {'project_id': project_hid, 'minify': True}
+        response = self._make_request(url_name = 'result', request_type = 'post', input_json = data)
+        details = self._get_data(response)
+        return details
