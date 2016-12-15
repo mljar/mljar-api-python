@@ -25,7 +25,8 @@ class Mljar(MljarClient):
         if project == '':
             project = 'Project-' + str(uuid.uuid4())[:4]
         if experiment == '':
-            experiment = 'Experiment-' + str(uuid.uuid4())[:4]
+            raise Exception('The experiment title is undefined')
+            #experiment = 'Experiment-' + str(uuid.uuid4())[:4]
         self.project_title    = project
         self.experiment_title = experiment
         self.validation       = validation
@@ -139,38 +140,39 @@ class Mljar(MljarClient):
         print 'MY DATASET', my_dataset
 
 
+        # check if experiment exists
+        experiments = self.get_experiments(project_details['hid'])
+        print 'Experiments', experiments
+        experiment_details = [e for e in experiments if e['title'] == self.experiment_title]
+        if len(experiment_details) > 0:
+            print 'Experiement exist already !'
+            experiment_details = experiment_details[0]
+        else:
+            print 'Create NEW EXPERIMENT'
+            dataset_hid = my_dataset['hid']
+            dataset_title = my_dataset['title']
+            dataset_preproc = {}
+            # default preprocessing
+            if len(my_dataset['column_usage_min']['cols_to_fill_na']) > 0:
+                dataset_preproc['na_fill'] = 'na_fill_median'
+                print 'There are missing values in dataset which will be filled with median.'
+            if len(my_dataset['column_usage_min']['cols_to_convert_categorical']) > 0:
+                dataset_preproc['convert_categorical'] = 'categorical_to_int'
+                print 'There are categorical attributes which will be coded as integers.'
 
-        dataset_hid = my_dataset['hid']
-        dataset_title = my_dataset['title']
-        dataset_preproc = {}
-        # default preprocessing
-        if len(my_dataset['column_usage_min']['cols_to_fill_na']) > 0:
-            dataset_preproc['na_fill'] = 'na_fill_median'
-            print 'There are missing values in dataset which will be filled with median.'
-        if len(my_dataset['column_usage_min']['cols_to_convert_categorical']) > 0:
-            dataset_preproc['convert_categorical'] = 'categorical_to_int'
-            print 'There are categorical attributes which will be coded as integers.'
+
+            # create a new experiment
+            if self.validation is None or self.validation == '' or self.validation not in MLJAR_VALIDATIONS:
+                self.validation = MLJAR_DEFAULT_VALIDATION
+            if self.metric is None or  self.metric == '' or self.metric not in MLJAR_METRICS:
+                self.metric = MLJAR_DEFAULT_METRICS[self.project_task]
+            if self.tuning_mode is None or  self.tuning_mode == '' or self.tuning_mode not in MLJAR_TUNING_MODES:
+                self.tuning_mode = MLJAR_DEFAULT_TUNING_MODE
+            if self.algorithms is None or self.algorithms == [] or self.algorithms == '':
+                self.algorithms = MLJAR_DEFAULT_ALGORITHMS[project_details['task']]
 
 
-        # create a new experiment
-        if self.validation is None or self.validation == '' or self.validation not in MLJAR_VALIDATIONS:
-            self.validation = MLJAR_DEFAULT_VALIDATION
-        if self.metric is None or  self.metric == '' or self.metric not in MLJAR_METRICS:
-            self.metric = MLJAR_DEFAULT_METRICS[self.project_task]
-        if self.tuning_mode is None or  self.tuning_mode == '' or self.tuning_mode not in MLJAR_TUNING_MODES:
-            self.tuning_mode = MLJAR_DEFAULT_TUNING_MODE
-        if self.algorithms is None or self.algorithms == [] or self.algorithms == '':
-            self.algorithms = MLJAR_DEFAULT_ALGORITHMS[self.project_task]
-
-        data = {
-            'title': self.experiment_title,
-            'description': 'Auto generated ML experiment',
-            'metric': self.metric,
-            'validation_scheme': self.validation,
-            'task': self.project_task,
-            'compute_now': 1,
-            'parent_project': project_details['hid'],
-            'params': str(json.dumps({
+            params = json.dumps({
                 'train_dataset': {'id': dataset_hid, 'title': dataset_title},
                 'preproc': dataset_preproc,
                 'algs': self.algorithms,
@@ -178,15 +180,36 @@ class Mljar(MljarClient):
                 'random_start_cnt': MLJAR_TUNING_MODES[self.tuning_mode]['random_start_cnt'],
                 'hill_climbing_cnt': MLJAR_TUNING_MODES[self.tuning_mode]['hill_climbing_cnt'],
                 'single_limit': self.time_constraint
-            }))
-        }
 
-        '''
+            })
+            data = {
+                'title': self.experiment_title,
+                'description': 'Auto ...',
+                'metric': self.metric,
+                'validation_scheme': self.validation,
+                'task': project_details['task'],
+                'compute_now': 1,
+                'parent_project': project_details['hid'],
+                'params': params
 
-        '''
+            }
 
-        print 'Experiment setup', data
-        self.create_experiment(data)
+            print 'Experiment setup', data
+            experiment_details = elf.create_experiment(data)
+
+
+        print 'My experiment exists', experiment_details
+        print 'Experiment hid', experiment_details['hid']
+
+        results = self.fetch_results(project_details['hid'], experiment_details['hid'])
+
+
+    def fetch_results(self, project_hid, experiment_hid):
+        results = self.get_results(project_hid)
+
+        print 'Results', results
+        return results
+>>>>>>> 97f1a2f99e2fedd35e995161b79292c5171e0ee6
 
     def fit(self, X, y):
         print 'MLJAR fit ...'

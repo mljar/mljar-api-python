@@ -52,7 +52,7 @@ class Client(object):
             'project':      '/'.join([self.API_ENDPOINT, API_VERSION, 'projects']),
             'dataset':      '/'.join([self.API_ENDPOINT, API_VERSION, 'datasets']),
             'experiment':   '/'.join([self.API_ENDPOINT, API_VERSION, 'experiments']),
-            'result':       '/'.join([self.API_ENDPOINT, API_VERSION, 'results']),
+            'result':       '/'.join([self.API_ENDPOINT, API_VERSION, 'results/']),
             's3policy':     '/'.join([self.API_ENDPOINT, API_VERSION, 's3policy/']),
             'accept_column_usage': '/'.join([self.API_ENDPOINT, API_VERSION, 'accept_column_usage/']),
         }
