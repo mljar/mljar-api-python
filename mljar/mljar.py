@@ -1,5 +1,6 @@
 import os
 import uuid
+import sys
 import json, requests
 import time
 import numpy as np
@@ -47,7 +48,7 @@ class Mljar(MljarClient):
         self.tuning_mode      = tuning_mode
         self.time_constraint  = time_constraint
         self.create_enseble   = create_enseble
-
+        self.selected_algorithm = None
 
     def _add_project_if_notexists(self, verbose = True):
         '''
@@ -209,8 +210,33 @@ class Mljar(MljarClient):
         #
         # get results
         #
-        results = self.fetch_results(project_details['hid'], verbose = True)
+        results = self.fetch_results(project_details['hid'], verbose = False)
 
+        experiment_state = 'Ready for computation'
+        if experiment_details['compute_now'] == 1:
+            experiment_state = 'Computing'
+        if experiment_details['compute_now'] == 2:
+            experiment_state = 'Done'
+        print 'Experiment is:', experiment_state
+
+        if experiment_state != 'Done':
+            print 'Please wait till all models are trained'
+            for i in range(100):
+                time.sleep(10)
+                sys.stdout.write('\rProgess: {1}%'.format(i))
+                sys.stdout.flush()
+
+        # get the best result!
+        the_best_result = None
+        if experiment_state in ['Computing', 'Done']:
+            opt_direction = 1 if experiment_details['metric'] \
+                                        not in MLJAR_OPT_MAXIMIZE else -1
+            min_value = 1000000000
+            for r in results:
+                if r['metric_value']*opt_direction < min_value:
+                    min_value = r['metric_value']*opt_direction
+                    the_best_result = r
+        return the_best_result
 
     def fetch_results(self, project_hid, verbose = False):
         results = self.get_results(project_hid)
@@ -228,18 +254,17 @@ class Mljar(MljarClient):
                     model_name = r['model_type']
                 print "{:{width}} {} \t {} {} [{}]".format(model_name, r['metric_value'], r['metric_type'], r['validation_scheme'], r['status'], width=27)
 
-
-             #{u'status': u'Done', u'metric_value': 0.0, u'iters': 1000, u'model_type': u'xgb',
-             #u'status_detail': u'None', u'validation_scheme': u'5fold',
-             #u'status_modify_at': u'2016-12-14T10:24:42.005Z', u'experiment': u'Experiment 1', u'hid': u'GvRdeYwVmJak',
-             #u'run_time': 3, u'metric_type': u'logloss', u'dataset': u'Train-018a'},
-
-
         return results
 
     def fit(self, X, y):
-        self._init_experiment(X, y)
+        try:
+            self.selected_algorithm = self._init_experiment(X, y)
+            if self.selected_algorithm is not None:
+                print 'The best algorithm', self.selected_algorithm
 
+
+        except Exception as e:
+            print 'Ups, %s' % str(e)
 
 
     def predict(self, X):

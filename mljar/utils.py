@@ -13,7 +13,6 @@ MLJAR_TASKS = {
 MLJAR_METRICS = {
             'auc'    : 'Area Under Curve',
             'logloss': 'Logarithmic Loss',
-            'acc'    : 'Accuracy',
             'rmse'   : 'Root Mean Square Error',
             'mse'    : 'Mean Square Error',
             'mae'    : 'Mean Absolute Error'
@@ -67,6 +66,7 @@ MLJAR_DEFAULT_ENSEMBLE        = True
 MLJAR_DEFAULT_TUNING_MODE     = 'Sport'
 MLJAR_DEFAULT_TIME_CONSTRAINT = '60' # minutes
 
+MLJAR_OPT_MAXIMIZE = ['auc']
 
 '''
 Function to compute datasets hash, to not upload several times the same dataset.
