@@ -8,13 +8,26 @@ from mljar_client import MljarClient
 
 from utils import *
 
+class Error(Exception):
+    pass
+
+class IncorrectInputDataError(Error):
+    pass
+
+class DatasetUnknownError(Error):
+    pass
+
+class DatasetInvalidError(Error):
+    pass
+
+
 class Mljar(MljarClient):
 
     '''
         This is a wrapper over MLJAR API - it do all the stuff.
     '''
 
-    def __init__(self, project = '', experiment = '',
+    def __init__(self, project, experiment,
                         metric = '', algorithms = [],
                         preprocessing = [],
                         validation  = MLJAR_DEFAULT_VALIDATION,
@@ -22,11 +35,9 @@ class Mljar(MljarClient):
                         time_constraint = MLJAR_DEFAULT_TIME_CONSTRAINT,
                         create_enseble  = MLJAR_DEFAULT_ENSEMBLE):
         super(Mljar, self).__init__()
-        if project == '':
-            project = 'Project-' + str(uuid.uuid4())[:4]
-        if experiment == '':
-            raise Exception('The experiment title is undefined')
-            #experiment = 'Experiment-' + str(uuid.uuid4())[:4]
+        if project == '' or experiment == '':
+            raise Exception('The project or experiment title is undefined')
+
         self.project_title    = project
         self.experiment_title = experiment
         self.validation       = validation
@@ -37,39 +48,31 @@ class Mljar(MljarClient):
         self.time_constraint  = time_constraint
         self.create_enseble   = create_enseble
 
-        print 'Mljar', self.project_title, self.experiment_title
 
-    def _init_experiment(self, X, y):
-        print 'Init experiment'
-        if len(y.shape) > 1 and y.shape[1] > 1:
-            raise Exception('Sorry, multiple outputs are not supported in MLJAR')
-        if y.shape[0] != X.shape[0]:
-            raise Exception('Sorry, there is a missmatch between X and y matrices shapes')
-        self.project_task = 'bin_class' # binary classification
-        if len(np.unique(y)) != 2:
-            self.project_task = 'reg' # regression
-
-        # check if project with such title exists
+    def _add_project_if_notexists(self, verbose = True):
+        '''
+            Checks if project exists, if not it add new project.
+        '''
         projects = self.get_projects(verbose=False)
         project_details = [p for p in projects if p['title'] == self.project_title]
-        print project_details
         # if project with such title does not exist, create one
         if len(project_details) == 0:
-            print 'Create a new project'
+            print 'Create a new project:', self.project_title
             project_details = self.create_project(title = self.project_title,
                                         description = 'Porject generated from mljar client API',
                                         task = self.project_task)
         else:
-            print 'Project already exists'
             project_details = project_details[0]
-        print 'Details', project_details
-        print project_details['hid']
+        if verbose:
+            print 'Project:', project_details['title']
+        return project_details
 
-        # add a dataset to project
-        print type(X), type(y)
+    def _add_dataset_if_notexists(self, X, y, project_details, verbose = True):
+        '''
+            Checks if dataset already exists, if not it add dataset to project.
+        '''
         data = None
         if isinstance(X, np.ndarray):
-            print 'numpy data', X.shape
             cols = {}
             col_names = []
             for i in xrange(X.shape[1]):
@@ -80,56 +83,39 @@ class Mljar(MljarClient):
             col_names.append('target')
             data = pd.DataFrame(cols, columns=col_names)
         if isinstance(X, pd.DataFrame):
-            print 'pandas data'
             data = pd.concat((X,y), axis=1)
             data.columns[-1] = 'target'
-
-        print 'Columns', data.columns
-
+        # compute hash to check if dataset already exists
         dataset_hash = str(make_hash(data))
-        print 'Hash', dataset_hash
-
         dataset_details = [d for d in project_details['datasets'] if d['dataset_hash'] == dataset_hash]
+        # add new dataset
         if len(dataset_details) == 0:
-            print 'Add new dataset into project'
             self.dataset_title = 'Train-' + str(uuid.uuid4())[:4]
             file_path = '/tmp/dataset-'+ str(uuid.uuid4())[:8]+'.csv'
             data.to_csv(file_path, index=False)
-            print file_path
-            print "tu", project_details['hid'], self.dataset_title, file_path
             dataset_details = self.add_new_dataset(project_details['hid'], self.dataset_title, file_path, prediction_only=False)
-
+            print 'New dataset (%s) added to project: %s' % (self.dataset_title, self.project_title)
         else:
-            print 'Data set already exists!'
             dataset_details = dataset_details[0]
             self.dataset_title = dataset_details.get('title', '')
-
-        print 'There are following datasets in the project', project_details['datasets']
-        print 'Dataset details', dataset_details
 
         # wait till dataset is validated ...
         my_dataset = None
         for i in xrange(60):
-            print i, 'Check if dataset is valid ...'
-
             datasets = self.get_datasets(project_hid = project_details['hid'])
             my_dataset = [d for d in datasets if d['title'] == self.dataset_title]
             if len(my_dataset) == 0:
-                raise Exception('Can not find dataset')
+                raise DatasetUnknownError('Can not find dataset: %s' % self.dataset_title)
             my_dataset = my_dataset[0]
-            print 'Valid', my_dataset['valid']
-            #print datasets
             if my_dataset['valid'] == 1:
                 break
             time.sleep(10)
 
         if my_dataset['valid'] != 1:
-            raise Exception('Sorry, your dataset can not be understand by MLJAR. Please report this to us - we will fix it.')
+            raise DatasetInvalidError('Sorry, your dataset can not be understand by MLJAR. Please report this to us - we will fix it.')
 
         if my_dataset['accepted'] == 0:
-            print 'Accept dataset ...'
             details = self.accept_dataset_column_usage(my_dataset['hid'])
-            print 'Accept details', details
             # and refresh dataset
             datasets = self.get_datasets(project_hid = project_details['hid'])
             my_dataset = [d for d in datasets if d['title'] == self.dataset_title]
@@ -137,26 +123,23 @@ class Mljar(MljarClient):
                 raise Exception('Can not find dataset')
             my_dataset = my_dataset[0]
 
-        print 'MY DATASET', my_dataset
+        if verbose:
+            print 'Dataset:', my_dataset['title']
+        return my_dataset
 
-
-        # check if experiment exists
+    def _add_experiment_if_notexists(self, project_details, dataset_details, verbose = True):
+        # get existing experiments
         experiments = self.get_experiments(project_details['hid'])
-        print 'Experiments', experiments
         experiment_details = [e for e in experiments if e['title'] == self.experiment_title]
         if len(experiment_details) > 0:
-            print 'Experiement exist already !'
             experiment_details = experiment_details[0]
         else:
-            print 'Create NEW EXPERIMENT'
-            dataset_hid = my_dataset['hid']
-            dataset_title = my_dataset['title']
             dataset_preproc = {}
             # default preprocessing
-            if len(my_dataset['column_usage_min']['cols_to_fill_na']) > 0:
+            if len(dataset_details['column_usage_min']['cols_to_fill_na']) > 0:
                 dataset_preproc['na_fill'] = 'na_fill_median'
                 print 'There are missing values in dataset which will be filled with median.'
-            if len(my_dataset['column_usage_min']['cols_to_convert_categorical']) > 0:
+            if len(dataset_details['column_usage_min']['cols_to_convert_categorical']) > 0:
                 dataset_preproc['convert_categorical'] = 'categorical_to_int'
                 print 'There are categorical attributes which will be coded as integers.'
 
@@ -173,7 +156,7 @@ class Mljar(MljarClient):
 
 
             params = json.dumps({
-                'train_dataset': {'id': dataset_hid, 'title': dataset_title},
+                'train_dataset': {'id': dataset_details['hid'], 'title': dataset_details['title']},
                 'preproc': dataset_preproc,
                 'algs': self.algorithms,
                 'ensemble': self.create_enseble,
@@ -194,26 +177,67 @@ class Mljar(MljarClient):
 
             }
 
-            print 'Experiment setup', data
             experiment_details = elf.create_experiment(data)
+        if verbose:
+            print 'Experiment:', experiment_details['title'], \
+                    'metric:', experiment_details['metric'], \
+                    'validation:', experiment_details['validation_scheme']
+        return experiment_details
+
+    def _init_experiment(self, X, y):
+        # check input data dimensions
+        if len(y.shape) > 1 and y.shape[1] > 1:
+            raise IncorrectInputDataError('Sorry, multiple outputs are not supported in MLJAR')
+        if y.shape[0] != X.shape[0]:
+            raise IncorrectInputDataError('Sorry, there is a missmatch between X and y matrices shapes')
+        # define project task
+        self.project_task = 'bin_class' # binary classification
+        if len(np.unique(y)) != 2:
+            self.project_task = 'reg' # regression
+        #
+        # check if project with such title exists
+        #
+        project_details = self._add_project_if_notexists()
+        #
+        # add a dataset to project
+        #
+        dataset_details = self._add_dataset_if_notexists(X, y, project_details)
+        #
+        # add experiment to project
+        #
+        experiment_details = self._add_experiment_if_notexists(project_details, dataset_details)
+        #
+        # get results
+        #
+        results = self.fetch_results(project_details['hid'], verbose = True)
 
 
-        print 'My experiment exists', experiment_details
-        print 'Experiment hid', experiment_details['hid']
-
-        results = self.fetch_results(project_details['hid'], experiment_details['hid'])
-
-
-    def fetch_results(self, project_hid, experiment_hid):
+    def fetch_results(self, project_hid, verbose = False):
         results = self.get_results(project_hid)
+        results = [r for r in results if r['experiment'] == self.experiment_title]
+        if verbose:
+            print "{:{width}} {} \t {} {} [{}]".format('Model', 'Score', 'Metric', 'Validation', 'Status', width=27)
+            print '-'* 100
+            for r in results:
+                model_name = ''
+                if r['model_type'] in MLJAR_BIN_CLASS:
+                    model_name = MLJAR_BIN_CLASS[r['model_type']]
+                if r['model_type'] in MLJAR_REGRESSION:
+                    model_name = MLJAR_REGRESSION[r['model_type']]
+                if model_name == '':
+                    model_name = r['model_type']
+                print "{:{width}} {} \t {} {} [{}]".format(model_name, r['metric_value'], r['metric_type'], r['validation_scheme'], r['status'], width=27)
 
-        print 'Results', results
+
+             #{u'status': u'Done', u'metric_value': 0.0, u'iters': 1000, u'model_type': u'xgb',
+             #u'status_detail': u'None', u'validation_scheme': u'5fold',
+             #u'status_modify_at': u'2016-12-14T10:24:42.005Z', u'experiment': u'Experiment 1', u'hid': u'GvRdeYwVmJak',
+             #u'run_time': 3, u'metric_type': u'logloss', u'dataset': u'Train-018a'},
+
+
         return results
->>>>>>> 97f1a2f99e2fedd35e995161b79292c5171e0ee6
 
     def fit(self, X, y):
-        print 'MLJAR fit ...'
-        #AttributeError: 'Series' object has no attribute 'columns'
         self._init_experiment(X, y)
 
 

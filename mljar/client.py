@@ -31,14 +31,12 @@ class Client(object):
     '''
 
     def __init__(self, token = None, api_endpoint = None):
-        print 'Client init'
         if not token:
             self.TOKEN = os.environ.get('MLJAR_TOKEN', None)
         else:
             self.TOKEN = token
-        print 'token', self.TOKEN
         if not self.TOKEN:
-            raise TokenError()
+            raise TokenError('Please define environment variable MLJAR_TOKEN')
 
         if not api_endpoint:
             self.API_ENDPOINT = os.environ.get('MLJAR_API_ENDPOINT', None)
@@ -56,7 +54,7 @@ class Client(object):
             's3policy':     '/'.join([self.API_ENDPOINT, API_VERSION, 's3policy/']),
             'accept_column_usage': '/'.join([self.API_ENDPOINT, API_VERSION, 'accept_column_usage/']),
         }
-        print 'URL', self._urls, 'TOKEN', self.TOKEN
+
 
     def _make_request(self, url_name = '', custom_url = '', request_type = 'get', url_additional = '', input_json = {}, with_header = True):
         try:
@@ -72,14 +70,10 @@ class Client(object):
             if url_additional != '':
                 my_url += url_additional
 
-            print 'MY URL', my_url
             if request_type == 'get':
                 response = requests.get(my_url, headers=headers)
-                print 'url', response.url
             elif request_type == 'post':
                 if with_header:
-                    print 'post data', input_json
-
                     response = requests.post(my_url, data=input_json, headers=headers)
                 else:
                     response = requests.post(my_url, data=input_json)
@@ -88,7 +82,6 @@ class Client(object):
                     response = requests.put(my_url, data=input_json, headers=headers)
                 else:
                     response = requests.put(my_url, data=input_json)
-                print 'url', response.url
 
         except Exception as e:
             print 'There was an error during API call, %s' % str(e)
@@ -100,7 +93,6 @@ class Client(object):
             return None
         if response.status_code == 404:
             raise NotFoundError()
-
         try:
             data = response.json()
         except ValueError as e:
