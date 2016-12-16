@@ -49,26 +49,62 @@ class Mljar(MljarClient):
         self.time_constraint  = time_constraint
         self.create_enseble   = create_enseble
         self.selected_algorithm = None
+        self.dataset_title      = None
 
     def _add_project_if_notexists(self, verbose = True):
         '''
             Checks if project exists, if not it add new project.
         '''
         projects = self.get_projects(verbose=False)
-        project_details = [p for p in projects if p['title'] == self.project_title]
+        self.project_details = [p for p in projects if p['title'] == self.project_title]
         # if project with such title does not exist, create one
-        if len(project_details) == 0:
+        if len(self.project_details) == 0:
             print 'Create a new project:', self.project_title
-            project_details = self.create_project(title = self.project_title,
+            self.project_details = self.create_project(title = self.project_title,
                                         description = 'Porject generated from mljar client API',
                                         task = self.project_task)
         else:
-            project_details = project_details[0]
+            self.project_details = self.project_details[0]
         if verbose:
-            print 'Project:', project_details['title']
-        return project_details
+            print 'Project:', self.project_details['title']
+        return self.project_details
 
-    def _add_dataset_if_notexists(self, X, y, project_details, verbose = True):
+    def _wait_till_all_datasets_are_valid(self, dataset_hash):
+        datasets = self.project_details['datasets']
+        not_validated = [ds for ds in datasets if ds['valid'] == 0]
+        if len(not_validated) > 0:
+            print 'MLJAR is computing statistics for your dataset.'
+            print 'When ready, you can go to you project: %s' % self.project_details['title']
+            print 'and view data statistics in Preview. Please wait a moment.'
+
+            my_dataset = None
+            total_checks = 120
+            done = False
+            for i in xrange(120):
+                sys.stdout.write('\rProgress: {0}%'.format(round(i/(total_checks*0.01))))
+                sys.stdout.flush()
+                datasets = self.get_datasets(project_hid = self.project_details['hid'])
+                not_validated = [ds for ds in datasets if ds['valid'] == 0]
+                if len(not_validated) == 0:
+                    if self.dataset_title is not None:
+                        my_dataset = [d for d in datasets if d['title'] == self.dataset_title]
+                        my_dataset = my_dataset[0] if len(my_dataset) > 0 else None
+                    done = True
+                    break
+                time.sleep(5)
+            if done:
+                print '\rStatistics are available at https://mljar.com/app/#/p/%s/datapreview' % self.project_details['hid']
+            else:
+                print '\rSorry, the statistics for dataset can not be computed right now. Please try again in a while.'
+
+        else:
+            # all valid
+            my_dataset = [d for d in datasets if d['dataset_hash'] == dataset_hash]
+            my_dataset = my_dataset[0] if len(my_dataset) > 0 else None
+
+        return my_dataset
+
+    def _add_dataset_if_notexists(self, X, y, verbose = True):
         '''
             Checks if dataset already exists, if not it add dataset to project.
         '''
@@ -86,31 +122,31 @@ class Mljar(MljarClient):
         if isinstance(X, pd.DataFrame):
             data = pd.concat((X,y), axis=1)
             data.columns[-1] = 'target'
+
         # compute hash to check if dataset already exists
         dataset_hash = str(make_hash(data))
-        dataset_details = [d for d in project_details['datasets'] if d['dataset_hash'] == dataset_hash]
+        dataset_details = [d for d in self.project_details['datasets'] if d['dataset_hash'] == dataset_hash]
+
+        # wait till all dataset are validated
+        _ = self._wait_till_all_datasets_are_valid(dataset_hash)
+
+
         # add new dataset
         if len(dataset_details) == 0:
             self.dataset_title = 'Train-' + str(uuid.uuid4())[:4]
             file_path = '/tmp/dataset-'+ str(uuid.uuid4())[:8]+'.csv'
             data.to_csv(file_path, index=False)
-            dataset_details = self.add_new_dataset(project_details['hid'], self.dataset_title, file_path, prediction_only=False)
+            dataset_details = self.add_new_dataset(self.project_details['hid'], self.dataset_title, file_path, prediction_only=False)
             print 'New dataset (%s) added to project: %s' % (self.dataset_title, self.project_title)
         else:
             dataset_details = dataset_details[0]
             self.dataset_title = dataset_details.get('title', '')
 
         # wait till dataset is validated ...
-        my_dataset = None
-        for i in xrange(60):
-            datasets = self.get_datasets(project_hid = project_details['hid'])
-            my_dataset = [d for d in datasets if d['title'] == self.dataset_title]
-            if len(my_dataset) == 0:
-                raise DatasetUnknownError('Can not find dataset: %s' % self.dataset_title)
-            my_dataset = my_dataset[0]
-            if my_dataset['valid'] == 1:
-                break
-            time.sleep(10)
+        my_dataset = self._wait_till_all_datasets_are_valid(dataset_hash)
+        if len(my_dataset) == 0:
+            raise DatasetUnknownError('Can not find dataset: %s' % self.dataset_title)
+
 
         if my_dataset['valid'] != 1:
             raise DatasetInvalidError('Sorry, your dataset can not be understand by MLJAR. Please report this to us - we will fix it.')
@@ -118,7 +154,7 @@ class Mljar(MljarClient):
         if my_dataset['accepted'] == 0:
             details = self.accept_dataset_column_usage(my_dataset['hid'])
             # and refresh dataset
-            datasets = self.get_datasets(project_hid = project_details['hid'])
+            datasets = self.get_datasets(project_hid = self.project_details['hid'])
             my_dataset = [d for d in datasets if d['title'] == self.dataset_title]
             if len(my_dataset) == 0:
                 raise Exception('Can not find dataset')
@@ -128,9 +164,9 @@ class Mljar(MljarClient):
             print 'Dataset:', my_dataset['title']
         return my_dataset
 
-    def _add_experiment_if_notexists(self, project_details, dataset_details, verbose = True):
+    def _add_experiment_if_notexists(self, dataset_details, verbose = True):
         # get existing experiments
-        experiments = self.get_experiments(project_details['hid'])
+        experiments = self.get_experiments(self.project_details['hid'])
         experiment_details = [e for e in experiments if e['title'] == self.experiment_title]
         if len(experiment_details) > 0:
             experiment_details = experiment_details[0]
@@ -153,7 +189,7 @@ class Mljar(MljarClient):
             if self.tuning_mode is None or  self.tuning_mode == '' or self.tuning_mode not in MLJAR_TUNING_MODES:
                 self.tuning_mode = MLJAR_DEFAULT_TUNING_MODE
             if self.algorithms is None or self.algorithms == [] or self.algorithms == '':
-                self.algorithms = MLJAR_DEFAULT_ALGORITHMS[project_details['task']]
+                self.algorithms = MLJAR_DEFAULT_ALGORITHMS[self.project_details['task']]
 
 
             params = json.dumps({
@@ -171,14 +207,14 @@ class Mljar(MljarClient):
                 'description': 'Auto ...',
                 'metric': self.metric,
                 'validation_scheme': self.validation,
-                'task': project_details['task'],
+                'task': self.project_details['task'],
                 'compute_now': 1,
-                'parent_project': project_details['hid'],
+                'parent_project': self.project_details['hid'],
                 'params': params
 
             }
 
-            experiment_details = elf.create_experiment(data)
+            experiment_details = self.create_experiment(data)
         if verbose:
             print 'Experiment:', experiment_details['title'], \
                     'metric:', experiment_details['metric'], \
@@ -198,33 +234,54 @@ class Mljar(MljarClient):
         #
         # check if project with such title exists
         #
-        project_details = self._add_project_if_notexists()
+        self.project_details = self._add_project_if_notexists()
         #
         # add a dataset to project
         #
-        dataset_details = self._add_dataset_if_notexists(X, y, project_details)
+        dataset_details = self._add_dataset_if_notexists(X, y)
         #
         # add experiment to project
         #
-        experiment_details = self._add_experiment_if_notexists(project_details, dataset_details)
+        experiment_details = self._add_experiment_if_notexists(dataset_details)
         #
         # get results
         #
-        results = self.fetch_results(project_details['hid'], verbose = False)
+        results = self.fetch_results(self.project_details['hid'], verbose = False)
+
+        #print "expt details", experiment_details
 
         experiment_state = 'Ready for computation'
         if experiment_details['compute_now'] == 1:
             experiment_state = 'Computing'
         if experiment_details['compute_now'] == 2:
             experiment_state = 'Done'
-        print 'Experiment is:', experiment_state
+        print 'Experiment\'s state is:', experiment_state
 
         if experiment_state != 'Done':
-            print 'Please wait till all models are trained'
-            for i in range(100):
-                time.sleep(10)
-                sys.stdout.write('\rProgess: {1}%'.format(i))
+            WAIT_INTERVAL = 10.0
+            start_eta = int(self._asses_total_training_time(experiment_details, results) * 60.0 / WAIT_INTERVAL)
+
+            print "Models in training:"
+            for i in range(start_eta):
+                results = self.fetch_results(self.project_details['hid'], verbose = False)
+                initiated_cnt, learning_cnt, done_cnt, error_cnt = self._get_results_stats(results)
+
+                eta = self._asses_total_training_time(experiment_details, results)
+
+                sys.stdout.write("\rinitiated: {}, learning: {}, done: {}, error: {} | ETA: {} minutes\t\t".format(initiated_cnt, learning_cnt, done_cnt, error_cnt, eta))
                 sys.stdout.flush()
+
+                if initiated_cnt + learning_cnt == 0:
+                    # get experiment info
+                    experiments = self.get_experiments(self.project_details['hid'])
+                    experiment_details = [e for e in experiments if e['title'] == self.experiment_title]
+                    experiment_details = experiment_details[0] if len(experiment_details) > 0 else None
+                    if experiment_details is not None:
+                        if experiment_details['compute_now'] == 2: # experiment finished
+                            results = self.fetch_results(self.project_details['hid'], verbose = True)
+                            experiment_state = 'Done'
+                            break
+                time.sleep(WAIT_INTERVAL)
 
         # get the best result!
         the_best_result = None
@@ -238,20 +295,51 @@ class Mljar(MljarClient):
                     the_best_result = r
         return the_best_result
 
+    def _get_results_stats(self, results):
+        initiated_cnt, learning_cnt, done_cnt, error_cnt = 0, 0, 0, 0
+        for r in results:
+            if r['status'] == 'Initiated':
+                initiated_cnt += 1
+            elif r['status'] == 'Learning':
+                learning_cnt += 1
+            elif r['status'] == 'Done':
+                done_cnt += 1
+            else: # error
+                error_cnt += 1
+        return initiated_cnt, learning_cnt, done_cnt, error_cnt
+
+    def _asses_total_training_time(self, experiment_details, results):
+        '''
+            Estimated time of models arrival, in minutes.
+        '''
+        single_alg_limit = float(experiment_details['params']['single_limit'])
+        initiated_cnt, learning_cnt, done_cnt, error_cnt = self._get_results_stats(results)
+        total = (initiated_cnt * single_alg_limit) / float(max(learning_cnt,1))
+        total += 0.5 * single_alg_limit
+        return total
+
+    def _wait_till_all_models_trained(self, project_details):
+        pass
+
+    def _get_full_model_name(self, model_type):
+        model_name = ''
+        if model_type in MLJAR_BIN_CLASS:
+            model_name = MLJAR_BIN_CLASS[model_type]
+        if model_type in MLJAR_REGRESSION:
+            model_name = MLJAR_REGRESSION[model_type]
+        if model_name == '':
+            model_name = model_type
+        return model_name
+
     def fetch_results(self, project_hid, verbose = False):
         results = self.get_results(project_hid)
         results = [r for r in results if r['experiment'] == self.experiment_title]
         if verbose:
+            print '-'* 80
             print "{:{width}} {} \t {} {} [{}]".format('Model', 'Score', 'Metric', 'Validation', 'Status', width=27)
-            print '-'* 100
+            print '-'* 80
             for r in results:
-                model_name = ''
-                if r['model_type'] in MLJAR_BIN_CLASS:
-                    model_name = MLJAR_BIN_CLASS[r['model_type']]
-                if r['model_type'] in MLJAR_REGRESSION:
-                    model_name = MLJAR_REGRESSION[r['model_type']]
-                if model_name == '':
-                    model_name = r['model_type']
+                model_name = self._get_full_model_name(r['model_type'])
                 print "{:{width}} {} \t {} {} [{}]".format(model_name, r['metric_value'], r['metric_type'], r['validation_scheme'], r['status'], width=27)
 
         return results
@@ -260,8 +348,13 @@ class Mljar(MljarClient):
         try:
             self.selected_algorithm = self._init_experiment(X, y)
             if self.selected_algorithm is not None:
-                print 'The best algorithm', self.selected_algorithm
-
+                print 'The most useful algotihm:'
+                print "{} = {} {} on {} [{}]".format(\
+                                            self._get_full_model_name(self.selected_algorithm['model_type']), \
+                                            self.selected_algorithm['metric_value'], \
+                                            self.selected_algorithm['metric_type'], \
+                                            self.selected_algorithm['validation_scheme'], \
+                                            self.selected_algorithm['status'])
 
         except Exception as e:
             print 'Ups, %s' % str(e)
@@ -269,3 +362,8 @@ class Mljar(MljarClient):
 
     def predict(self, X):
         print 'MLJAR predict ...'
+
+        if self.selected_algorithm is None:
+            print 'Can not run prediction.'
+            print 'Please run fit to find an algorithm.'
+            return None

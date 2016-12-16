@@ -168,7 +168,7 @@ class MljarClient(Client):
         return details
 
     def get_results(self, project_hid):
-        data = {'project_id': project_hid, 'minify': True}
+        data = {'project_id': project_hid} # , 'minify': False
         response = self._make_request(url_name = 'result', request_type = 'post', input_json = data)
         response.raise_for_status()
         details = self._get_data(response)
