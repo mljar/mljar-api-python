@@ -71,6 +71,15 @@ class Mljar(MljarClient):
 
     def _wait_till_all_datasets_are_valid(self, dataset_hash):
         datasets = self.project_details['datasets']
+        # try to refresh project details
+        if len(datasets) == 0:
+            self.project_details = self.get_project_details(self.project_details['hid'])
+            datasets = self.project_details['datasets']
+
+        if len(datasets) == 0:
+            return None
+
+
         not_validated = [ds for ds in datasets if ds['valid'] == 0]
         if len(not_validated) > 0:
             print 'MLJAR is computing statistics for your dataset.'
@@ -121,7 +130,7 @@ class Mljar(MljarClient):
             data = pd.DataFrame(cols, columns=col_names)
         if isinstance(X, pd.DataFrame):
             data = pd.concat((X,y), axis=1)
-            data.columns[-1] = 'target'
+            data.rename({data.columns[-1]:'target'}, inplace=True)
 
         # compute hash to check if dataset already exists
         dataset_hash = str(make_hash(data))
@@ -268,7 +277,7 @@ class Mljar(MljarClient):
 
                 eta = self._asses_total_training_time(experiment_details, results)
 
-                sys.stdout.write("\rinitiated: {}, learning: {}, done: {}, error: {} | ETA: {} minutes\t\t".format(initiated_cnt, learning_cnt, done_cnt, error_cnt, eta))
+                sys.stdout.write("\rinitiated: {}, learning: {}, done: {}, error: {} | ETA: {} minutes                         ".format(initiated_cnt, learning_cnt, done_cnt, error_cnt, eta))
                 sys.stdout.flush()
 
                 if initiated_cnt + learning_cnt == 0:
@@ -361,9 +370,9 @@ class Mljar(MljarClient):
 
 
     def predict(self, X):
-        print 'MLJAR predict ...'
-
         if self.selected_algorithm is None:
             print 'Can not run prediction.'
-            print 'Please run fit to find an algorithm.'
+            print 'Please run fit first to find algorithm.'
             return None
+        else:
+            print 'Start prediction'

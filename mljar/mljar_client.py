@@ -56,7 +56,7 @@ class MljarClient(Client):
             raise UnknownPorjectTaskError('Unknown task %s' % task_short)
         return tasks[task_short]
 
-    def get_project_details(self, project_hid, verbose = True):
+    def get_project_details(self, project_hid, verbose = False):
         '''
             Print out project details and return details in json.
         '''

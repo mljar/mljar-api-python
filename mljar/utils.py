@@ -57,14 +57,14 @@ MLJAR_DEFAULT_METRICS = {
             }
 
 MLJAR_DEFAULT_ALGORITHMS = {
-            'bin_class': ['xgb', 'rfc', 'mlp'],
-            'regression': ['xgbr', 'rfr']
+            'bin_class': ['xgb'], #, 'rfc', 'mlp'],
+            'regression': ['xgbr'] #, 'rfr']
             }
 
 MLJAR_DEFAULT_VALIDATION      = '5fold'
 MLJAR_DEFAULT_ENSEMBLE        = True
 MLJAR_DEFAULT_TUNING_MODE     = 'Sport'
-MLJAR_DEFAULT_TIME_CONSTRAINT = '60' # minutes
+MLJAR_DEFAULT_TIME_CONSTRAINT = '5' # minutes
 
 MLJAR_OPT_MAXIMIZE = ['auc']
 

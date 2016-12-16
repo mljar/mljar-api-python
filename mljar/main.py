@@ -11,4 +11,7 @@ cols = ['sepal length', 'sepal width', 'petal length', 'petal width']
 
 # create MLJAR models, yeah! :)
 model = Mljar(project = 'Iris_binary', experiment = 'Experiment_1')
-model.fit(X = np.array(df[cols]), y = df['class'])
+model.fit(X = df[cols], y = df['class'])
+
+# predict with MLJAR model
+model.predict(df[cols])
