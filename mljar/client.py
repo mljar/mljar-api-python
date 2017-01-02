@@ -71,6 +71,8 @@ class Client(object):
             if url_additional != '':
                 my_url += url_additional
 
+            print 'request', my_url, request_type, input_json, with_header, headers    
+
             if request_type == 'get':
                 response = requests.get(my_url, headers=headers)
             elif request_type == 'post':
@@ -80,6 +82,7 @@ class Client(object):
                     response = requests.post(my_url, data=input_json)
             elif request_type == 'put':
                 if with_header:
+                    print my_url, 'with header', input_json
                     response = requests.put(my_url, data=input_json, headers=headers)
                 else:
                     response = requests.put(my_url, data=input_json)

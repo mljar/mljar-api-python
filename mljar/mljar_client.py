@@ -76,12 +76,13 @@ class MljarClient(Client):
         return details
 
     def create_project(self, title, description = '', task = 'bin_class'):
-        data={'hardware': 'cloud',
+        data= {'hardware': 'cloud',
                 'scope': 'private',
                 'task': task,
                 'compute_now': 0,
                 'description': description,
                 'title':title}
+
         response = self._make_request(url_name = 'project', request_type = 'post', input_json = data)
         response.raise_for_status()
         if response.status_code == 201:
@@ -175,12 +176,13 @@ class MljarClient(Client):
         return details
 
     def submit_predict_job(self, project_hid, dataset_hid, result_hid):
-        data = {'project_id': project_hid,
-                            'project_hardware': 'cloud',
-                            'algorithms_ids':[result_hid],
-                            'dataset_id': dataset_hid,
-                            'cv_models':1}
+        data =  {'predict_params' : json.dumps({'project_id': project_hid,
+                    'project_hardware': 'cloud',
+                    'algorithms_ids': [result_hid],
+                    'dataset_id': dataset_hid,
+                    'cv_models':1})
+                }
+        print 'Data', data
         response = self._make_request(url_name = 'predict', request_type = 'post', input_json = data)
         response.raise_for_status()
-        details = self._get_data(response)
-        return details
+        return response.status_code

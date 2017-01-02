@@ -386,8 +386,8 @@ class Mljar(MljarClient):
             dataset_details = self._add_dataset_if_notexists(X, y = None, verbose = True)
             print 'Dataset', dataset_details
             # create prediction job
-            job_details = self.submit_predict_job(self.project_details['hid'],
+            status_code = self.submit_predict_job(self.project_details['hid'],
                                                     dataset_details['hid'],
                                                     self.selected_algorithm['hid'])
-
+            print 'Status code', status_code
             # wait for prediction

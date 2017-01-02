@@ -27,6 +27,7 @@ MLJAR_VALIDATIONS = {
 
 MLJAR_BIN_CLASS = {
             "xgb"   :"Extreme Gradient Boosting",
+            "lgb"   :"LightGBM",
             "rfc"   :"Random Forest",
             "rgfc"  :"Regularized Greedy Forest",
             "etc"   :"Extra Trees",
@@ -37,6 +38,7 @@ MLJAR_BIN_CLASS = {
 
 MLJAR_REGRESSION = {
             "xgbr" :"Extreme Gradient Boosting",
+            "lgbr" :"LightGBM",
             "rfr"  :"Random Forest",
             "rgfr" :"Regularized Greedy Forest",
             "etr"  :"Extra Trees"
