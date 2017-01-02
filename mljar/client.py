@@ -51,6 +51,7 @@ class Client(object):
             'dataset':      '/'.join([self.API_ENDPOINT, API_VERSION, 'datasets']),
             'experiment':   '/'.join([self.API_ENDPOINT, API_VERSION, 'experiments']),
             'result':       '/'.join([self.API_ENDPOINT, API_VERSION, 'results/']),
+            'predict':       '/'.join([self.API_ENDPOINT, API_VERSION, 'predict/']),
             's3policy':     '/'.join([self.API_ENDPOINT, API_VERSION, 's3policy/']),
             'accept_column_usage': '/'.join([self.API_ENDPOINT, API_VERSION, 'accept_column_usage/']),
         }

@@ -140,7 +140,7 @@ class MljarClient(Client):
             'meta': '',
             'data_type': 'tabular',
             'scope': 'private',
-            'prediction_only': 0
+            'prediction_only': 1 if prediction_only else 0
         }
         response = self._make_request(url_name = 'dataset', request_type = 'post', input_json = data)
         response.raise_for_status()
@@ -170,6 +170,17 @@ class MljarClient(Client):
     def get_results(self, project_hid):
         data = {'project_id': project_hid} # , 'minify': False
         response = self._make_request(url_name = 'result', request_type = 'post', input_json = data)
+        response.raise_for_status()
+        details = self._get_data(response)
+        return details
+
+    def submit_predict_job(self, project_hid, dataset_hid, result_hid):
+        data = {'project_id': project_hid,
+                            'project_hardware': 'cloud',
+                            'algorithms_ids':[result_hid],
+                            'dataset_id': dataset_hid,
+                            'cv_models':1}
+        response = self._make_request(url_name = 'predict', request_type = 'post', input_json = data)
         response.raise_for_status()
         details = self._get_data(response)
         return details

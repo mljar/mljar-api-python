@@ -70,11 +70,11 @@ class Mljar(MljarClient):
         return self.project_details
 
     def _wait_till_all_datasets_are_valid(self, dataset_hash):
-        datasets = self.project_details['datasets']
+        #datasets = self.project_details['datasets']
         # try to refresh project details
-        if len(datasets) == 0:
-            self.project_details = self.get_project_details(self.project_details['hid'])
-            datasets = self.project_details['datasets']
+        #if len(datasets) == 0:
+        self.project_details = self.get_project_details(self.project_details['hid'])
+        datasets = self.project_details['datasets']
 
         if len(datasets) == 0:
             return None
@@ -125,12 +125,16 @@ class Mljar(MljarClient):
                 c = 'attribute_'+str(i+1)
                 cols[c] = X[:,i]
                 col_names += [c]
-            cols['target'] = y
-            col_names.append('target')
+            if y is not None:
+                cols['target'] = y
+                col_names.append('target')
             data = pd.DataFrame(cols, columns=col_names)
         if isinstance(X, pd.DataFrame):
-            data = pd.concat((X,y), axis=1)
-            data.rename({data.columns[-1]:'target'}, inplace=True)
+            if y is not None:
+                data = pd.concat((X,y), axis=1)
+                data.rename({data.columns[-1]:'target'}, inplace=True)
+            else:
+                data = X
 
         # compute hash to check if dataset already exists
         dataset_hash = str(make_hash(data))
@@ -142,10 +146,10 @@ class Mljar(MljarClient):
 
         # add new dataset
         if len(dataset_details) == 0:
-            self.dataset_title = 'Train-' + str(uuid.uuid4())[:4]
+            self.dataset_title = 'Dataset-' + str(uuid.uuid4())[:4]
             file_path = '/tmp/dataset-'+ str(uuid.uuid4())[:8]+'.csv'
             data.to_csv(file_path, index=False)
-            dataset_details = self.add_new_dataset(self.project_details['hid'], self.dataset_title, file_path, prediction_only=False)
+            dataset_details = self.add_new_dataset(self.project_details['hid'], self.dataset_title, file_path, prediction_only=(y is None))
             print 'New dataset (%s) added to project: %s' % (self.dataset_title, self.project_title)
         else:
             dataset_details = dataset_details[0]
@@ -153,7 +157,7 @@ class Mljar(MljarClient):
 
         # wait till dataset is validated ...
         my_dataset = self._wait_till_all_datasets_are_valid(dataset_hash)
-        if len(my_dataset) == 0:
+        if my_dataset is None or len(my_dataset) == 0:
             raise DatasetUnknownError('Can not find dataset: %s' % self.dataset_title)
 
 
@@ -369,10 +373,21 @@ class Mljar(MljarClient):
             print 'Ups, %s' % str(e)
 
 
+
     def predict(self, X):
-        if self.selected_algorithm is None:
+        if self.selected_algorithm is None or self.project_details is None:
             print 'Can not run prediction.'
             print 'Please run fit first to find algorithm.'
             return None
         else:
             print 'Start prediction'
+
+            # upload dataset for prediction
+            dataset_details = self._add_dataset_if_notexists(X, y = None, verbose = True)
+            print 'Dataset', dataset_details
+            # create prediction job
+            job_details = self.submit_predict_job(self.project_details['hid'],
+                                                    dataset_details['hid'],
+                                                    self.selected_algorithm['hid'])
+
+            # wait for prediction
