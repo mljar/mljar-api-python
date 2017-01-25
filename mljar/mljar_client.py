@@ -1,7 +1,9 @@
-
+import pandas as pd
 import os
 import json, requests
 from client import Client
+import uuid
+
 
 '''
     MljarClient errors:
@@ -182,7 +184,33 @@ class MljarClient(Client):
                     'dataset_id': dataset_hid,
                     'cv_models':1})
                 }
-        print 'Data', data
         response = self._make_request(url_name = 'predict', request_type = 'post', input_json = data)
         response.raise_for_status()
         return response.status_code
+
+    def check_if_prediction_available(self, project_hid, dataset_hid, result_hid):
+        url_additional = '?project_id=' + project_hid + '&dataset_id='+dataset_hid+'&result_id='+result_hid
+        response = self._make_request(url_name = 'predictions', request_type = 'get', url_additional = url_additional)
+        response.raise_for_status()
+        details = self._get_data(response)
+        if len(details) == 1:
+            return True, details[0].get('hid', None)
+        return False, None
+
+
+    def download_prediction(self, prediction_hid):
+        response = self._make_request(url_name = 'download_prediction', request_type = 'post', input_json = {"prediction_id": prediction_hid})
+        response.raise_for_status()
+        try:
+            tmp_file = '/tmp/mljar_prediction_' + str(uuid.uuid4()) + '.csv'
+            pred = None
+            with open(tmp_file, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=1024):
+                    if chunk: # filter out keep-alive new chunks
+                        f.write(chunk)
+            pred = pd.read_csv(tmp_file)
+            os.remove(tmp_file)
+        except Exception as e:
+            print '\nThere was unexpected error during geting predictions.', str(e)
+        finally:
+            return pred

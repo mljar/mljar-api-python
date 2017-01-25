@@ -34,7 +34,8 @@ class Mljar(MljarClient):
                         validation  = MLJAR_DEFAULT_VALIDATION,
                         tuning_mode = MLJAR_DEFAULT_TUNING_MODE,
                         time_constraint = MLJAR_DEFAULT_TIME_CONSTRAINT,
-                        create_enseble  = MLJAR_DEFAULT_ENSEMBLE):
+                        create_enseble  = MLJAR_DEFAULT_ENSEMBLE,
+                        verbose = False):
         super(Mljar, self).__init__()
         if project == '' or experiment == '':
             raise Exception('The project or experiment title is undefined')
@@ -50,8 +51,9 @@ class Mljar(MljarClient):
         self.create_enseble   = create_enseble
         self.selected_algorithm = None
         self.dataset_title      = None
+        self.verbose            = verbose
 
-    def _add_project_if_notexists(self, verbose = True):
+    def _add_project_if_notexists(self):
         '''
             Checks if project exists, if not it add new project.
         '''
@@ -59,13 +61,14 @@ class Mljar(MljarClient):
         self.project_details = [p for p in projects if p['title'] == self.project_title]
         # if project with such title does not exist, create one
         if len(self.project_details) == 0:
-            print 'Create a new project:', self.project_title
+            if self.verbose:
+                print 'Create a new project:', self.project_title
             self.project_details = self.create_project(title = self.project_title,
                                         description = 'Porject generated from mljar client API',
                                         task = self.project_task)
         else:
             self.project_details = self.project_details[0]
-        if verbose:
+        if self.verbose:
             print 'Project:', self.project_details['title']
         return self.project_details
 
@@ -82,9 +85,10 @@ class Mljar(MljarClient):
 
         not_validated = [ds for ds in datasets if ds['valid'] == 0]
         if len(not_validated) > 0:
-            print 'MLJAR is computing statistics for your dataset.'
-            print 'When ready, you can go to you project: %s' % self.project_details['title']
-            print 'and view data statistics in Preview. Please wait a moment.'
+            if self.verbose:
+                print 'MLJAR is computing statistics for your dataset.'
+                print 'When ready, you can go to you project: %s' % self.project_details['title']
+                print 'and view data statistics in Preview. Please wait a moment.'
 
             my_dataset = None
             total_checks = 120
@@ -274,35 +278,44 @@ class Mljar(MljarClient):
             WAIT_INTERVAL = 10.0
             start_eta = int(self._asses_total_training_time(experiment_details, results) * 60.0 / WAIT_INTERVAL)
 
+            print 'Start eta', start_eta
             print "Models in training:"
             for i in range(start_eta):
-                results = self.fetch_results(self.project_details['hid'], verbose = False)
-                initiated_cnt, learning_cnt, done_cnt, error_cnt = self._get_results_stats(results)
+                try:
+                    results = self.fetch_results(self.project_details['hid'], verbose = False)
+                    initiated_cnt, learning_cnt, done_cnt, error_cnt = self._get_results_stats(results)
 
-                eta = self._asses_total_training_time(experiment_details, results)
+                    eta = self._asses_total_training_time(experiment_details, results)
 
-                sys.stdout.write("\rinitiated: {}, learning: {}, done: {}, error: {} | ETA: {} minutes                         ".format(initiated_cnt, learning_cnt, done_cnt, error_cnt, eta))
-                sys.stdout.flush()
+                    sys.stdout.write("\rinitiated: {}, learning: {}, done: {}, error: {} | ETA: {} minutes                         ".format(initiated_cnt, learning_cnt, done_cnt, error_cnt, eta))
+                    sys.stdout.flush()
 
-                if initiated_cnt + learning_cnt == 0:
-                    # get experiment info
-                    experiments = self.get_experiments(self.project_details['hid'])
-                    experiment_details = [e for e in experiments if e['title'] == self.experiment_title]
-                    experiment_details = experiment_details[0] if len(experiment_details) > 0 else None
-                    if experiment_details is not None:
-                        if experiment_details['compute_now'] == 2: # experiment finished
-                            results = self.fetch_results(self.project_details['hid'], verbose = True)
-                            experiment_state = 'Done'
-                            break
-                time.sleep(WAIT_INTERVAL)
+                    if initiated_cnt + learning_cnt == 0:
+                        # get experiment info
+                        experiments = self.get_experiments(self.project_details['hid'])
+                        experiment_details = [e for e in experiments if e['title'] == self.experiment_title]
+                        experiment_details = experiment_details[0] if len(experiment_details) > 0 else None
+                        if experiment_details is not None:
+                            if experiment_details['compute_now'] == 2: # experiment finished
+                                results = self.fetch_results(self.project_details['hid'], verbose = True)
+                                experiment_state = 'Done'
+                                break
+                    time.sleep(WAIT_INTERVAL)
+                except Exception as e:
+                    print 'There is some problem while waiting for models', str(e)
 
+        if self.verbose:
+            print 'Training finished'
         # get the best result!
         the_best_result = None
         if experiment_state in ['Computing', 'Done']:
             opt_direction = 1 if experiment_details['metric'] \
                                         not in MLJAR_OPT_MAXIMIZE else -1
-            min_value = 1000000000
+            min_value = 10e12
             for r in results:
+                print '[debug]', r['metric_value'], opt_direction
+                if r['metric_value'] is None:
+                    continue
                 if r['metric_value']*opt_direction < min_value:
                     min_value = r['metric_value']*opt_direction
                     the_best_result = r
@@ -326,6 +339,8 @@ class Mljar(MljarClient):
             Estimated time of models arrival, in minutes.
         '''
         single_alg_limit = float(experiment_details['params']['single_limit'])
+        if single_alg_limit is None:
+            single_alg_limit = 5
         initiated_cnt, learning_cnt, done_cnt, error_cnt = self._get_results_stats(results)
         total = (initiated_cnt * single_alg_limit) / float(max(learning_cnt,1))
         total += 0.5 * single_alg_limit
@@ -348,7 +363,7 @@ class Mljar(MljarClient):
         results = self.get_results(project_hid)
         results = [r for r in results if r['experiment'] == self.experiment_title]
         if verbose:
-            print '-'* 80
+            print '\n','-'* 80
             print "{:{width}} {} \t {} {} [{}]".format('Model', 'Score', 'Metric', 'Validation', 'Status', width=27)
             print '-'* 80
             for r in results:
@@ -377,17 +392,39 @@ class Mljar(MljarClient):
     def predict(self, X):
         if self.selected_algorithm is None or self.project_details is None:
             print 'Can not run prediction.'
-            print 'Please run fit first to find algorithm.'
+            print 'Please fit algorithms first ;)'
             return None
         else:
-            print 'Start prediction'
 
-            # upload dataset for prediction
+            # chack if dataset exists in mljar if not upload dataset for prediction
             dataset_details = self._add_dataset_if_notexists(X, y = None, verbose = True)
-            print 'Dataset', dataset_details
-            # create prediction job
-            status_code = self.submit_predict_job(self.project_details['hid'],
-                                                    dataset_details['hid'],
-                                                    self.selected_algorithm['hid'])
-            print 'Status code', status_code
-            # wait for prediction
+
+            # check if prediction is available
+            total_checks = 100
+            for i in xrange(total_checks):
+                prediction_available, prediction_hid = self.check_if_prediction_available(self.project_details['hid'],
+                                                                                dataset_details['hid'],
+                                                                                self.selected_algorithm['hid'])
+                # prediction is not available, first check so submit job
+                if i == 0 and not prediction_available:
+                    # create prediction job
+                    status_code = self.submit_predict_job(self.project_details['hid'],
+                                                            dataset_details['hid'],
+                                                            self.selected_algorithm['hid'])
+                    if status_code != 200:
+                        print 'Problem with prediction for your dataset'
+                        return None
+
+                if prediction_available and prediction_hid is not None:
+                    prediction = self.download_prediction(prediction_hid)
+                    sys.stdout.write('\r\n')
+                    return prediction
+
+                sys.stdout.write('\rFetch predictions: {0}%'.format(round(i/(total_checks*0.01))))
+                sys.stdout.flush()
+                time.sleep(5)
+
+            sys.stdout.write('\r\n')
+            print 'Sorry, there was some problem with prediction for your dataset. \
+                    Please login to mljar.com to your account and check details.'
+            return None

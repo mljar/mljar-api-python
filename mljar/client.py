@@ -51,7 +51,9 @@ class Client(object):
             'dataset':      '/'.join([self.API_ENDPOINT, API_VERSION, 'datasets']),
             'experiment':   '/'.join([self.API_ENDPOINT, API_VERSION, 'experiments']),
             'result':       '/'.join([self.API_ENDPOINT, API_VERSION, 'results/']),
-            'predict':       '/'.join([self.API_ENDPOINT, API_VERSION, 'predict/']),
+            'predict':      '/'.join([self.API_ENDPOINT, API_VERSION, 'predict/']),
+            'predictions':  '/'.join([self.API_ENDPOINT, API_VERSION, 'predictions']), # it is not a bug, we don't need here '/'
+            'download_prediction': '/'.join([self.API_ENDPOINT, API_VERSION, 'download/prediction/']),
             's3policy':     '/'.join([self.API_ENDPOINT, API_VERSION, 's3policy/']),
             'accept_column_usage': '/'.join([self.API_ENDPOINT, API_VERSION, 'accept_column_usage/']),
         }
@@ -71,7 +73,7 @@ class Client(object):
             if url_additional != '':
                 my_url += url_additional
 
-            print 'request', my_url, request_type, input_json, with_header, headers    
+            #print 'request', my_url, request_type, input_json, with_header, headers
 
             if request_type == 'get':
                 response = requests.get(my_url, headers=headers)
