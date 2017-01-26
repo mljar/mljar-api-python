@@ -37,6 +37,17 @@ export MLJAR_TOKEN=exampleexampleexample
 ```
  5. That's all, you are ready to use MLJAR in your python code!
 
+## What's going on?
+
+ * This wrapper allows you to search through different Machine Learning algorithms and tune each of the algorithm.
+ * By searching and tuning ML algorithm to your data you will get very accurate model.
+ * By calling method `fit` from `Mljar class` you create new project and start experiment with models training.
+ All your results will be accessible from your mljar.com account - this makes Machine Learning super easy and
+ keeps all your models and results in beautiful order. So, you will never miss anything.
+ * All computations are done in MLJAR Cloud, they are executed in parallel. So after callgin `fit` method you can switch
+ your computer off and MLJAR will do the job for you!
+ * I think this is really amazing! What do you think? Please let us know at `contact@mljar.com`.
+
 ## Examples
 
 Coming soon!
