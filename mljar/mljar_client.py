@@ -33,6 +33,7 @@ class MljarClient(Client):
     '''
     def __init__(self):
         super(MljarClient, self).__init__()
+        self.verbose = True
 
     def get_projects(self, verbose = True):
         '''
@@ -166,6 +167,15 @@ class MljarClient(Client):
 
     def get_experiments(self, project_hid):
         response = self._make_request(url_name = 'experiment', request_type = 'get', url_additional = '?project_id='+project_hid)
+        response.raise_for_status()
+        details = self._get_data(response)
+        return details
+
+    def get_experiment_details(self, experiment_hid):
+        '''
+            Get details of experiment.
+        '''
+        response = self._make_request(url_name = 'experiment', request_type = 'get', url_additional = '/' + experiment_hid)
         response.raise_for_status()
         details = self._get_data(response)
         return details
