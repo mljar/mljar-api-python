@@ -59,8 +59,8 @@ MLJAR_DEFAULT_METRICS = {
             }
 
 MLJAR_DEFAULT_ALGORITHMS = {
-            'bin_class': ['xgb'], #, 'rfc', 'mlp'],
-            'regression': ['xgbr'] #, 'rfr']
+            'bin_class': ['xgb', 'lgb', 'mlp'], 
+            'regression': ['xgbr', 'lgbr']
             }
 
 MLJAR_DEFAULT_VALIDATION      = '5fold'
