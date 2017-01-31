@@ -18,5 +18,5 @@ setup(
     author_email='contact@mljar.com',
     license='Apache-2.0',
     packages=['mljar'],
-    install_requires=['requests']
+    install_requires=['requests', 'marshmallow']
 )
