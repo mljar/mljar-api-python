@@ -43,6 +43,7 @@ class MljarHttpClient(object):
                 if response.status_code != 204:
                     logger.debug("Response content: {}, headers: {}".format(response.json(), response.headers))
             except Exception as e:
+                print 'Failed', request_url
                 logger.error("Request failed: {} {}".format(response.content, str(e)))
         self._check_response_status(response)
         return response

@@ -82,10 +82,10 @@ class DatasetClient(MljarHttpClient):
             not_validated = [ds for ds in datasets if ds.valid == 0]
             if len(not_validated) == 0:
                 return
-            if i == 0:
-                print 'MLJAR is computing statistics for your dataset. Please wait.'
-            sys.stdout.write('\rProgress: {0}%'.format(round(i/(total_checks*0.01))))
-            sys.stdout.flush()
+            #if i == 0:
+            #    print 'MLJAR is computing statistics for your dataset. Please wait.'
+            #sys.stdout.write('\rProgress: {0}%'.format(round(i/(total_checks*0.01))))
+            #sys.stdout.flush()
             time.sleep(5)
         raise MljarException('There are some problems with reading one of your dataset. \
                             Please login to mljar.com and check your project for more details.')
@@ -116,6 +116,8 @@ class DatasetClient(MljarHttpClient):
 
         # wait till dataset is validated ...
         self._wait_till_all_datasets_are_valid()
+        if not self._accept_dataset_column_usage(dataset_details.hid):
+            raise MljarException('There was a problem with accept column usage for your dataset.')
         # get dataset with updated statistics
         my_dataset = self.get_dataset(dataset_details.hid)
         if my_dataset is None:
@@ -123,20 +125,14 @@ class DatasetClient(MljarHttpClient):
         if my_dataset.valid != 1:
             raise MljarException('Sorry, your dataset can not be read by MLJAR. \
                                     Please report this to us - we will fix it.')
-
-        if my_dataset.accepted == 0:
-            self.accept_dataset_column_usage(my_dataset.hid)
-            # and refresh value in dataset
-            my_dataset.accepted = 1
-
         return my_dataset
 
-
-    def accept_dataset_column_usage(self, dataset_hid):
+    def _accept_dataset_column_usage(self, dataset_hid):
         response = self.request("POST", '/accept_column_usage/',data = {'dataset_id': dataset_hid})
+        return response.status_code == 200
 
 
-    def add_new_dataset(self, data, y): # project_hid, title, file_path, prediction_only=False):
+    def add_new_dataset(self, data, y):
         logger.info('Add new dataset')
         title = 'Dataset-' + str(uuid.uuid4())[:4] # set some random name
         file_path = '/tmp/dataset-'+ str(uuid.uuid4())[:8]+'.csv'
@@ -163,4 +159,4 @@ class DatasetClient(MljarHttpClient):
         response = self.request("POST", self.url, data = data)
         if response.status_code != 201:
             raise CreateDatasetException()
-        return Dataset(response.json())
+        return Dataset.from_dict(response.json())

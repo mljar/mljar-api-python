@@ -3,7 +3,7 @@
 A simple python wrapper over mljar API. It allows MLJAR users to create Machine Learning models with few lines of code:
 
 ```python
-import mljar
+from mljar import
 
 model = Mljar(project='My awesome project', experiment='First experiment')
 model.fit(X,y)
@@ -51,3 +51,11 @@ export MLJAR_TOKEN=exampleexampleexample
 ## Examples
 
 Coming soon!
+
+## Testing
+
+To run tests with command:
+
+```
+python -m tests.run
+```

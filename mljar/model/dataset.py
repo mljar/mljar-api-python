@@ -26,15 +26,7 @@ class DatasetSchema(Schema):
     @post_load
     def make_project_instance(self, data):
         return Dataset(**data)
-'''
-{u'prediction_only': 0, u'accepted': 1, u'checked': 1, u'data_type': u'tabular', u'title': u'train', u'dataset_hash': u'5127009536139176676',
-u'file_name': u'adult_na.csv', u'meta': [], u'derived': 0, u'valid': 1, u'hid': u'NYwvZA3d8Aol', u'file_size': u'3.79', u'scope': u'private', u'text_msg': None,
- u'column_usage_min': {u'cols_to_fill_na': [u'workclass', u'occupation', u'native-country'],
- u'use': [u'age', u'workclass', u'fnlwgt', u'education', u'education-num', u'marital-status', u'occupation', u'relationship', u'race',
-  u'sex', u'capital-gain', u'capital-loss', u'hours-per-week', u'native-country'], u'dont': [], u'cols_to_convert_categorical':
-   [u'workclass', u'education', u'marital-status', u'occupation', u'relationship', u'race', u'sex', u'native-country', u'income'], u'id': [],
-   u'target': [u'income']}, u'file_path': u'users/user-id=1/project-id=AyBz36V93GEX/datasets/dataset-2753725c-248f-401b-b091-db8f5943c11cadult_na.csv'}]
-'''
+
 class Dataset(BaseModel):
     schema = DatasetSchema(strict=True)
 
@@ -69,18 +61,3 @@ class Dataset(BaseModel):
         print 'File size:', self.file_size
         print 'Accepted column usage:', self.accepted
         print '-'*50
-
-'''
-
-[{u'prediction_only': 0, u'accepted': 1, u'checked': 1, u'data_type': u'tabular',
-u'title': u'train', u'dataset_hash': u'5127009536139176676', u'file_name': u'adult_na.csv',
-u'meta': [], u'derived': 0, u'valid': 1, u'hid': u'NYwvZA3d8Aol', u'file_size': u'3.79', u'scope': u'private', u'text_msg': None,
-u'column_usage_min':
- {u'cols_to_fill_na': [u'workclass', u'occupation', u'native-country'],
- u'use': [u'age', u'workclass', u'fnlwgt', u'education', u'education-num', u'marital-status', u'occupation', u'relationship', u'race', u'sex',
-  u'capital-gain', u'capital-loss', u'hours-per-week', u'native-country'], u'dont': [],
-  u'cols_to_convert_categorical': [u'workclass', u'education', u'marital-status', u'occupation', u'relationship', u'race', u'sex', u'native-country', u'income'],
-   u'id': [], u'target': [u'income']},
-   u'file_path': u'users/user-id=1/project-id=AyBz36V93GEX/datasets/dataset-2753725c-248f-401b-b091-db8f5943c11cadult_na.csv'}]
-
-'''

@@ -4,8 +4,6 @@ import sys
 import json, requests
 import time
 import numpy as np
-import pandas as pd
-#from mljar_client import MljarClient
 
 from utils import *
 from exceptions import BadValueException, IncorrectInputDataException, UndefinedExperimentException
@@ -102,41 +100,6 @@ class Mljar(object):
         Args:
             X: The numpy or pandas matrix with training data.
             y: The numpy or pandas vector with target values.
-            tuning_mode: This parameter controls number of models that will be checked
-                            for each selected algorithm. There available modes: Normal, Sport, Insane.
-            algorithms: The list of algorithms that will be checked. The list depends on project task which will be guessed based on target column values.
-                        For binary classification task available algorithm are:
-                         - xgb which is for Xgboost
-                         - lgb which is for LightGBM
-                         - mlp which is for Neural Network
-                         - rfc which is for Random Forest
-                         - etc which is for Extra Trees
-                         - rgfc which is for Regularized Greedy Forest
-                         - knnc which is for k-Nearest Neighbors
-                         - logreg which is for Logistic Regression
-                        For regression task there are available algorithms:
-                         - xgbr which is for Xgboost
-                         - lgbr which is for LightGBM
-                         - rgfr which is for Regularized Greedy Forest
-                         - rfr which is for Random Forest
-                         - etr which is for Extra Trees
-                        You can specify the list of algorithms that you want to use, if left blank all algorithms will be used.
-            metric: The metric that will be used for model search and tuning. It depends on project's task.
-                    For binary classification there are metrics:
-                     - auc which is for Area Under ROC Curve
-                     - logloss which is for Logarithmic Loss
-                    For regression tasks:
-                     - rmse which is Root Mean Square Error
-                     - mse which is for Mean Square Error
-                     - mase which is for Mean Absolute Error
-            validation: The schema of validation that will be used for model search and tuning. There is only available
-                        validation with cross validation. Proper values are:
-                         - 3fold for 3-fold Stratified CV
-                         - 5fold for 5-fold Stratified CV
-                         - 10fold for 10-fold Stratified CV
-                        The default is 5-fold CV.
-            single_algorithm_time_limit: The time in minutes that will be spend for training single algorithm.
-                        Default value is 5 minutes.
         '''
         # check input data dimensions
         if len(y.shape) > 1 and y.shape[1] > 1:
@@ -167,7 +130,7 @@ class Mljar(object):
         #
         # check if project with such title exists
         #
-        self.project = ProjectClient().create_project_if_notexists(self.project_title, self.project_task)
+        self.project = ProjectClient().create_project_if_not_exists(self.project_title, self.project_task)
         #
         # add a dataset to project
         #

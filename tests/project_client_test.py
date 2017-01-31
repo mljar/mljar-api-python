@@ -13,9 +13,10 @@ class ProjectClientTest(unittest.TestCase):
         compare if new list length is greater than old one.
         '''
         proj_title = 'Test project-01'
+        proj_task = 'bin_class'
         pc = ProjectClient()
         projects_before = pc.get_projects()
-        new_project = pc.create_project(title = proj_title)
+        new_project = pc.create_project(title = proj_title, task = proj_task)
         self.assertEqual(new_project.title, proj_title)
         projects_after = pc.get_projects()
         self.assertEqual(len(projects_before) + 1, len(projects_after))
@@ -29,9 +30,10 @@ class ProjectClientTest(unittest.TestCase):
         Test project get method.
         '''
         proj_title = 'Test project-02'
+        proj_task = 'bin_class'
         pc = ProjectClient()
         projects_before = pc.get_projects()
-        new_project = pc.create_project(title = proj_title)
+        new_project = pc.create_project(title = proj_title, task = proj_task)
         project = pc.get_project(hid = new_project.hid)
         self.assertEqual(new_project.hid, project.hid)
         self.assertEqual(new_project.title, project.title)
@@ -51,4 +53,11 @@ class ProjectClientTest(unittest.TestCase):
         self.assertEqual(project, None)
 
     def test_create_if_not_exists(self):
-        pass
+        proj_title = 'Test project-02'
+        proj_task = 'bin_class'
+        pc = ProjectClient()
+        project = pc.create_project_if_not_exists(title = proj_title, task = proj_task)
+        self.assertNotEqual(project, None)
+        pc.delete_project(project.hid)
+        project = pc.get_project(hid =project.hid)
+        self.assertEqual(project, None)

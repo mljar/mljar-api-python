@@ -43,7 +43,7 @@ class ExperimentClient(MljarHttpClient):
             raise CreateExperimentException()
         return Experiment(response.json())
 
-    def add_experiment_if_not_exists(self, train_dataset, experiment_title, project_task, \
+    def create_experiment_if_not_exists(self, train_dataset, experiment_title, project_task, \
                                         validation, algorithms, metric, \
                                         tuning_mode, time_constraint, create_enseble):
         # parameters validation

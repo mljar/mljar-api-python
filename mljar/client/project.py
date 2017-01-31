@@ -30,7 +30,7 @@ class ProjectClient(MljarHttpClient):
             return None
 
 
-    def create_project(self, title, description = '', task = 'bin_class'):
+    def create_project(self, title, task, description = ''):
         '''
         Creates new project
         '''
@@ -52,7 +52,7 @@ class ProjectClient(MljarHttpClient):
         response = self.request("DELETE", '/'.join([self.url, hid]))
         return response.status_code == 204 or response.status_code == 200
 
-    def create_project_if_notexists(self, title, task):
+    def create_project_if_not_exists(self, title, task, description = ''):
         '''
         Checks if project with specified title and task exists, if not it adds new project.
         '''
@@ -61,7 +61,7 @@ class ProjectClient(MljarHttpClient):
         # if project with such title does not exist, create one
         if len(self.my_project) == 0:
             self.my_project = self.create_project(title = title,
-                                                    description = 'Project generated from python client',
+                                                    description = description,
                                                     task = task)
         else:
             self.my_project = self.my_project[0]
