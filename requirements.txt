@@ -1,2 +1,4 @@
 requests>=2.2.1
 marshmallow>=2.12.1
+pandas
+numpy
