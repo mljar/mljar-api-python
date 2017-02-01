@@ -1,8 +1,9 @@
+[![Build Status](https://travis-ci.org/mljar/mljar-api-python.svg?branch=master)](https://travis-ci.org/mljar/mljar-api-python)
+[![PyPI version](https://badge.fury.io/py/mljar.svg)](https://badge.fury.io/py/mljar)
+
 # mljar-api-python
 
 A simple python wrapper over mljar API. It allows MLJAR users to create Machine Learning models with few lines of code:
-
-[![Build Status](https://travis-ci.org/mljar/mljar-api-python.svg?branch=master)](https://travis-ci.org/mljar/mljar-api-python)
 
 ```python
 from mljar import Mljar
