@@ -41,7 +41,7 @@ class MljarTest(ProjectBasedTest):
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
                         algorithms = ['xgb'], metric='logloss',
                         validation='3fold', tuning_mode='Normal')
-        self.assertNotEqual(model, None)
+        self.assertTrue(model is not None)
         # fit models and wait till all models are trained
         model.fit(X = self.X, y = self.y)
         # run prediction
@@ -57,7 +57,7 @@ class MljarTest(ProjectBasedTest):
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
                         algorithms = ['xgb'], metric='logloss',
                         validation='3fold', tuning_mode='Normal')
-        self.assertNotEqual(model, None)
+        self.assertTrue(model is not None)
         # fit models, just start computation and do not wait
         start_time = time.time()
         model.fit(X = self.X, y = self.y, wait_till_all_done = False)
@@ -77,7 +77,7 @@ class MljarTest(ProjectBasedTest):
             max_trys -= 1
             if max_trys <= 0:
                 break
-        self.assertNotEqual(pred, None)
+        self.assertTrue(pred is not None)
         # get MSE
         score = self.mse(pred, self.y)
         self.assertTrue(score < 0.1)
@@ -91,7 +91,7 @@ class MljarTest(ProjectBasedTest):
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
                         algorithms = ['xgb'], metric='logloss',
                         validation='3fold', tuning_mode='Normal')
-        self.assertNotEqual(model, None)
+        self.assertTrue(model is not None)
         # fit models and wait till all models are trained
         model.fit(X = self.X, y = self.y)
         # run prediction
@@ -120,7 +120,7 @@ class MljarTest(ProjectBasedTest):
         model_2 = Mljar(project = self.proj_title, experiment = self.expt_title,
                         algorithms = ['xgb'], metric='logloss',
                         validation='3fold', tuning_mode='Normal')
-        self.assertNotEqual(model_2, None)
+        self.assertTrue(model_2 is not None)
         # re-use trained models
         model_2.fit(X = self.X, y = self.y)
         end_time = time.time()
