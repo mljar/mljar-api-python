@@ -5,6 +5,6 @@ install:
   - pip install -U -r requirements.txt
   - pip install coveralls
 script:
-  coverage python -m tests.run
+  coverage run -m tests.run
 after_success:
   coveralls
