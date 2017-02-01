@@ -6,7 +6,7 @@ Machine Learning models with few lines of code:
 
 .. code:: python
 
-    import mljar
+    from mljar import Mljar
 
     model = Mljar(project='My awesome project', experiment='First experiment')
     model.fit(X,y)
@@ -60,10 +60,19 @@ What's going on?
    super easy and keeps all your models and results in beautiful order.
    So, you will never miss anything.
 -  All computations are done in MLJAR Cloud, they are executed in
-   parallel. So after callgin ``fit`` method you can switch your
+   parallel. So after calling ``fit`` method you can switch your
    computer off and MLJAR will do the job for you!
 -  I think this is really amazing! What do you think? Please let us know
    at ``contact@mljar.com``.
+
+Testing
+-------
+
+To run tests with command:
+
+::
+
+    python -m tests.run
 
 Examples
 --------

@@ -41,9 +41,9 @@ class ExperimentClient(MljarHttpClient):
         response = self.request("POST", self.url, data = data)
         if response.status_code != 201:
             raise CreateExperimentException()
-        return Experiment(response.json())
+        return Experiment.from_dict(response.json())
 
-    def create_experiment_if_not_exists(self, train_dataset, experiment_title, project_task, \
+    def add_experiment_if_not_exists(self, train_dataset, experiment_title, project_task, \
                                         validation, algorithms, metric, \
                                         tuning_mode, time_constraint, create_enseble):
         # parameters validation
@@ -116,10 +116,6 @@ class ExperimentClient(MljarHttpClient):
                 'params': params
 
             }
-            print '***'
-            print data
-            print '+++'
-            print new_expt.to_dict()
             return self.create_experiment(data)
 
 

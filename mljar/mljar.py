@@ -93,14 +93,19 @@ class Mljar(object):
         self.metric = metric
         self.validation = validation
         self.single_algorithm_time_limit = single_algorithm_time_limit
+        self.wait_till_all_done = True
+        self.selected_algorithm = None
 
-    def fit(self, X, y):
+    def fit(self, X, y, wait_till_all_done = True):
         '''
         Fit models with MLJAR engine.
         Args:
             X: The numpy or pandas matrix with training data.
             y: The numpy or pandas vector with target values.
+            wait_till_all_done: The flag which decides if fit function will wait
+                                till experiment is done.
         '''
+        self.wait_till_all_done = wait_till_all_done
         # check input data dimensions
         if len(y.shape) > 1 and y.shape[1] > 1:
             raise IncorrectInputDataException('Sorry, multiple outputs are not supported in MLJAR')
@@ -108,17 +113,7 @@ class Mljar(object):
             raise IncorrectInputDataException('Sorry, there is a missmatch between X and y matrices shapes')
 
         try:
-            self.selected_algorithm = self._start_experiment(X, y)
-            '''
-            if self.selected_algorithm is not None:
-                print 'The most useful algotihm:'
-                print "{} = {} {} on {} [{}]".format(\
-                                            self._get_full_model_name(self.selected_algorithm['model_type']), \
-                                            self.selected_algorithm['metric_value'], \
-                                            self.selected_algorithm['metric_type'], \
-                                            self.selected_algorithm['validation_scheme'], \
-                                            self.selected_algorithm['status'])
-            '''
+            self._start_experiment(X, y)
         except Exception as e:
             print 'Ups, %s' % str(e)
 
@@ -146,12 +141,12 @@ class Mljar(object):
         #
         # get results
         #
-        results = ResultClient(self.project.hid).get_results(self.experiment.hid)
+        # results = ResultClient(self.project.hid).get_results(self.experiment.hid)
         #
         # wait for models ...
         #
-        the_best_result = self._wait_till_all_models_trained()
-        return the_best_result
+        if self.wait_till_all_done:
+            self.selected_algorithm = self._wait_till_all_models_trained()
 
     def _wait_till_all_models_trained(self):
         WAIT_INTERVAL = 10.0
@@ -181,8 +176,8 @@ class Mljar(object):
                 logger.error('There is some problem while waiting for models, %s' % str(e))
         logger.info('Get the best result')
         # get the best result!
-        self.selected_algorithm = self._get_the_best_result(results)
-        return self.selected_algorithm
+        return self._get_the_best_result(results)
+
 
 
     def _asses_total_training_time(self, results):
@@ -198,11 +193,11 @@ class Mljar(object):
     def _get_results_stats(self, results):
         initiated_cnt, learning_cnt, done_cnt, error_cnt = 0, 0, 0, 0
         for r in results:
-            if r['status'] == 'Initiated':
+            if r.status == 'Initiated':
                 initiated_cnt += 1
-            elif r['status'] == 'Learning':
+            elif r.status == 'Learning':
                 learning_cnt += 1
-            elif r['status'] == 'Done':
+            elif r.status == 'Done':
                 done_cnt += 1
             else: # error
                 error_cnt += 1
@@ -224,11 +219,25 @@ class Mljar(object):
 
 
     def predict(self, X):
-        if self.selected_algorithm is None or self.project is None or self.experiment is None:
+        if self.project is None or self.experiment is None:
             print 'Can not run prediction.'
-            print 'Please run fit method first, to fit models and to retrieve them ;)'
+            print 'Please run fit method first, to start models training and to retrieve them ;)'
             return None
-        else:
+        if self.selected_algorithm is None:
+            results = ResultClient(self.project.hid).get_results(self.experiment.hid)
+            self.selected_algorithm = self._get_the_best_result(results)
+            if self.experiment.compute_now != 2:
+                if self.selected_algorithm is not None:
+                    print 'DISCLAIMER:'
+                    print 'Your experiment is not yet finished.'
+                    print 'You will use the best model up to now.'
+                    print 'You can obtain better results if you wait till experiment is finished.'
+                else:
+                    print 'There is no ready model to use for prediction.'
+                    print 'Please wait and try in a moment'
+                    return None
+
+        if self.selected_algorithm is not None:
 
             # chack if dataset exists in mljar if not upload dataset for prediction
             dataset = DatasetClient(self.project.hid).add_dataset_if_not_exists(X, y = None)
@@ -250,14 +259,14 @@ class Mljar(object):
 
                 if prediction is not None:
                     pred = PredictionDownloadClient().download(prediction.hid)
-                    sys.stdout.write('\r\n')
+                    #sys.stdout.write('\r\n')
                     return pred
 
-                sys.stdout.write('\rFetch predictions: {0}%'.format(round(i/(total_checks*0.01))))
-                sys.stdout.flush()
+                #sys.stdout.write('\rFetch predictions: {0}%'.format(round(i/(total_checks*0.01))))
+                #sys.stdout.flush()
                 time.sleep(5)
 
-            sys.stdout.write('\r\n')
+            #sys.stdout.write('\r\n')
             logger.error('Sorry, there was some problem with computing prediction for your dataset. \
                             Please login to mljar.com to your account and check details.')
             return None

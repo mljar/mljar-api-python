@@ -45,22 +45,57 @@ class ExperimentClientTest(ProjectBasedTest):
         # add experiment
         ec = ExperimentClient(self.project.hid)
         self.assertNotEqual(ec, None)
-        experiment = ec.create_experiment(self.dataset, self.expt_title, self.project.task,
+        # there should be none experiments
+        experiments = ec.get_experiments()
+        self.assertEqual(experiments, [])
+        # create new experiment
+        experiment = ec.add_experiment_if_not_exists(self.dataset, self.expt_title, self.project.task,
                                             self.validation, self.algorithms, self.metric,
                                             self.tuning_mode, self.time_constraint, self.create_enseble)
         self.assertNotEqual(experiment, None)
+        self.assertEqual(experiment.title, self.expt_title)
+        self.assertEqual(experiment.validation_scheme, self.validation)
+        self.assertEqual(experiment.metric, self.metric)
+        # get all experiments, should be only one
+        experiments = ec.get_experiments()
+        self.assertEqual(len(experiments), 1)
+        # get experiment by hid, there should be the same
+        experiment_2 = ec.get_experiment(experiment.hid)
+        self.assertEqual(experiment_2.hid, experiment.hid)
+        self.assertEqual(experiment_2.title, experiment.title)
+        self.assertEqual(experiment_2.metric, experiment.metric)
+        self.assertEqual(experiment_2.validation_scheme, experiment.validation_scheme)
+        self.assertTrue(experiment.equal(experiment_2))
 
-'''
-(self, train_dataset, experiment_title, project_task, \
-                                    validation, algorithms, metric, \
-                                    tuning_mode, time_constraint, create_enseble):
-
-get_experiments
-
-get_experiment
-
-create
-
-create_experiment_if_not_exists
-
-'''
+    def test_create_if_exists(self):
+        """
+        Create experiment after experiment is already in project.
+        """
+        # add experiment
+        ec = ExperimentClient(self.project.hid)
+        self.assertNotEqual(ec, None)
+        # there should be none experiments
+        experiments = ec.get_experiments()
+        self.assertEqual(experiments, [])
+        # create new experiment
+        experiment = ec.add_experiment_if_not_exists(self.dataset, self.expt_title, self.project.task,
+                                            self.validation, self.algorithms, self.metric,
+                                            self.tuning_mode, self.time_constraint, self.create_enseble)
+        self.assertNotEqual(experiment, None)
+        # get all experiments, should be only one
+        experiments = ec.get_experiments()
+        self.assertEqual(len(experiments), 1)
+        # try to create the same experiment
+        experiment_2 = ec.add_experiment_if_not_exists(self.dataset, self.expt_title, self.project.task,
+                                            self.validation, self.algorithms, self.metric,
+                                            self.tuning_mode, self.time_constraint, self.create_enseble)
+        self.assertNotEqual(experiment, None)
+        # get all experiments, should be only one
+        experiments = ec.get_experiments()
+        self.assertEqual(len(experiments), 1)
+        # both should be the same
+        self.assertEqual(experiment_2.hid, experiment.hid)
+        self.assertEqual(experiment_2.title, experiment.title)
+        self.assertEqual(experiment_2.metric, experiment.metric)
+        self.assertEqual(experiment_2.validation_scheme, experiment.validation_scheme)
+        self.assertTrue(experiment.equal(experiment_2))

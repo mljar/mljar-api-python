@@ -3,7 +3,7 @@
 A simple python wrapper over mljar API. It allows MLJAR users to create Machine Learning models with few lines of code:
 
 ```python
-from mljar import
+from mljar import Mljar
 
 model = Mljar(project='My awesome project', experiment='First experiment')
 model.fit(X,y)
@@ -44,13 +44,9 @@ export MLJAR_TOKEN=exampleexampleexample
  * By calling method `fit` from `Mljar class` you create new project and start experiment with models training.
  All your results will be accessible from your mljar.com account - this makes Machine Learning super easy and
  keeps all your models and results in beautiful order. So, you will never miss anything.
- * All computations are done in MLJAR Cloud, they are executed in parallel. So after callgin `fit` method you can switch
+ * All computations are done in MLJAR Cloud, they are executed in parallel. So after calling `fit` method you can switch
  your computer off and MLJAR will do the job for you!
  * I think this is really amazing! What do you think? Please let us know at `contact@mljar.com`.
-
-## Examples
-
-Coming soon!
 
 ## Testing
 
@@ -59,3 +55,7 @@ To run tests with command:
 ```
 python -m tests.run
 ```
+
+## Examples
+
+Coming soon!

@@ -21,5 +21,5 @@ class PredictJobClient(MljarHttpClient):
                                                     'dataset_id': dataset_hid,
                                                     'cv_models':1})
                 }
-        response = self.request("POST", self.url, data = data)
+        response = self.request("POST", self.url, data = data, parse_json = False)
         return response.status_code == 200
