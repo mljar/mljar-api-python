@@ -65,13 +65,19 @@ class MljarTest(ProjectBasedTest):
         # time to initialize models should not be greater than 5 minutes
         self.assertTrue(end_time - start_time < 5*60)
         # run prediction
-        pred = model.predict(self.X)
-        if pred is None:
-            # there is no model ready, please wait
-            # there should be at least one model ready in 100 seconds
-            # it should be!
-            time.sleep(100)
-        pred = model.predict(self.X)
+        max_trys = 50
+        pred = None
+        while True:
+            pred = model.predict(self.X)
+            if pred is None:
+                # there is no model ready, please wait
+                time.sleep(10)
+            else:
+                break
+            max_trys -= 1
+            if max_trys <= 0:
+                break
+        self.assertNotEqual(pred, None)
         # get MSE
         score = self.mse(pred, self.y)
         self.assertTrue(score < 0.1)
@@ -143,4 +149,4 @@ class MljarTest(ProjectBasedTest):
         # get MSE
         score = self.mse(pred, self.y)
         self.assertTrue(score < 0.1)
-    '''    
+    '''
