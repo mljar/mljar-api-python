@@ -1,5 +1,10 @@
 language: python
 python:
   - "2.7"
-install: "pip install -U -r requirements.txt"
-script: python -m tests.run
+install:
+  - pip install -U -r requirements.txt
+  - pip install coveralls
+script:
+  coverage python -m tests.run
+after_success:
+  coveralls
