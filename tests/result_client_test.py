@@ -10,6 +10,7 @@ from mljar.client.project import ProjectClient
 from mljar.client.dataset import DatasetClient
 from mljar.client.experiment import ExperimentClient
 from mljar.client.result import ResultClient
+from mljar.exceptions import BadRequestException
 
 from project_based_test import ProjectBasedTest
 
@@ -41,12 +42,13 @@ class ResultClientTest(ProjectBasedTest):
         self.project_client.delete_project(self.project.hid)
 
     def test_get_results_for_wrong_project(self):
-        # init result client
-        rc = ResultClient('wrong-hid')
-        self.assertNotEqual(rc, None)
-        # get results - should be empty
-        results = rc.get_results()
-        self.assertEqual(results, [])
+        with self.assertRaises(BadRequestException) as context:
+            # init result client
+            rc = ResultClient('wrong-hid')
+            self.assertTrue(rc is not None)
+            # get results - should raise exception
+            rc.get_results()
+
 
     def test_get_results_for_project(self):
         # init result client
@@ -62,7 +64,7 @@ class ResultClientTest(ProjectBasedTest):
                                             self.validation, self.algorithms, self.metric,
                                             self.tuning_mode, self.time_constraint, self.create_enseble)
         # wait some time till models are initialized
-        time.sleep(120)
+        time.sleep(65)
         # get results - should be some models there
         results = rc.get_results()
         self.assertNotEqual(len(results), 0)
@@ -85,7 +87,7 @@ class ResultClientTest(ProjectBasedTest):
                                             self.validation, self.algorithms, self.metric,
                                             self.tuning_mode, self.time_constraint, self.create_enseble)
         # wait some time till models are initialized
-        time.sleep(120)
+        time.sleep(65)
         # get results for experiment - should be some models there
         results = rc.get_results(self.experiment.hid)
         self.assertNotEqual(len(results), 0)
