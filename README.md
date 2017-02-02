@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/mljar/mljar-api-python.svg?branch=master)](https://travis-ci.org/mljar/mljar-api-python)
 [![PyPI version](https://badge.fury.io/py/mljar.svg)](https://badge.fury.io/py/mljar)
+[![Coverage Status](https://coveralls.io/repos/github/mljar/mljar-api-python/badge.svg?branch=master)](https://coveralls.io/github/mljar/mljar-api-python?branch=master)
 
 # mljar-api-python
 
@@ -51,6 +52,10 @@ export MLJAR_TOKEN=exampleexampleexample
  your computer off and MLJAR will do the job for you!
  * I think this is really amazing! What do you think? Please let us know at `contact@mljar.com`.
 
+## Examples
+
+The examples are [here!](https://github.com/mljar/mljar-examples).
+
 ## Testing
 
 To run tests with command:
@@ -58,7 +63,3 @@ To run tests with command:
 ```
 python -m tests.run
 ```
-
-## Examples
-
-Coming soon!

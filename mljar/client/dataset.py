@@ -11,7 +11,7 @@ from ..exceptions import NotFoundException, MljarException, CreateDatasetExcepti
 from dataupload import DataUploadClient
 from ..log import logger
 
-from ..model.utils import make_hash
+from ..utils import make_hash
 
 class DatasetClient(MljarHttpClient):
     '''
