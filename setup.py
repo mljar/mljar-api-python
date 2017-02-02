@@ -10,13 +10,13 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='mljar',
-    version='0.0.2',
+    version='0.0.3',
     description='Python wrapper over MLJAR API',
     long_description=long_description,
     url='https://github.com/mljar/mljar-api-python',
     author='Piotr Plonski',
     author_email='contact@mljar.com',
     license='Apache-2.0',
-    packages=['mljar'],
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     install_requires=['requests', 'marshmallow']
 )
