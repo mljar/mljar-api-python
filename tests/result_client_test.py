@@ -64,7 +64,7 @@ class ResultClientTest(ProjectBasedTest):
                                             self.validation, self.algorithms, self.metric,
                                             self.tuning_mode, self.time_constraint, self.create_enseble)
         # wait some time till models are initialized
-        time.sleep(65)
+        time.sleep(60)
         # get results - should be some models there
         results = rc.get_results()
         self.assertNotEqual(len(results), 0)
@@ -87,7 +87,7 @@ class ResultClientTest(ProjectBasedTest):
                                             self.validation, self.algorithms, self.metric,
                                             self.tuning_mode, self.time_constraint, self.create_enseble)
         # wait some time till models are initialized
-        time.sleep(65)
+        time.sleep(60)
         # get results for experiment - should be some models there
         results = rc.get_results(self.experiment.hid)
         self.assertNotEqual(len(results), 0)
