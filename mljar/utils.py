@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+import hashlib
 '''
 MLJAR Constants
 '''
@@ -59,7 +59,7 @@ MLJAR_DEFAULT_METRICS = {
             }
 
 MLJAR_DEFAULT_ALGORITHMS = {
-            'bin_class': ['xgb', 'lgb', 'mlp'], 
+            'bin_class': ['xgb', 'lgb', 'mlp'],
             'regression': ['xgbr', 'lgbr']
             }
 
@@ -83,7 +83,8 @@ def make_hash(item):
         index = tuple(item.index)
         values = tuple(tuple(x) for x in item.values)
         item = tuple([index, values])
-
+    elif isinstance(item, np.ndarray):
+        return hashlib.sha1(item).hexdigest()
     try:
         return hash(item)
     except TypeError:
@@ -92,5 +93,5 @@ def make_hash(item):
             # is not a proper representation for the item (like for a frame :-()
             return hash(tuple(item))
         except TypeError as e:
-            print("Unhashable type: %s, %s" % (item, [type(t) for t in tuple(item)]))
+            print("Unhashable type: %s" % (item))
             raise e
