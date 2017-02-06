@@ -26,7 +26,6 @@ class Mljar(object):
     def __init__(self, project, experiment,
                         metric = '',
                         algorithms = [],
-                        preprocessing = [],
                         validation  = MLJAR_DEFAULT_VALIDATION,
                         tuning_mode = MLJAR_DEFAULT_TUNING_MODE,
                         create_enseble  = MLJAR_DEFAULT_ENSEMBLE,
@@ -76,7 +75,6 @@ class Mljar(object):
 
         self.project_title    = project
         self.experiment_title = experiment
-        self.preprocessing    = preprocessing
         self.create_enseble   = create_enseble
         self.selected_algorithm = None
         self.dataset_title      = None
