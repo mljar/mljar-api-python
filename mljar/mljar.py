@@ -148,7 +148,7 @@ class Mljar(object):
 
     def _wait_till_all_models_trained(self):
         WAIT_INTERVAL = 10.0
-        loop_max_counter = 60 # 1 hour waiting is enough ;)
+        loop_max_counter = 10*360 # 10 hours of max waiting, is enough ;)
         results = None
         while True:
             loop_max_counter -= 1

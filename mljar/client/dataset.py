@@ -4,6 +4,8 @@ import uuid
 import os
 import sys
 import time
+from zipfile import ZipFile, ZIP_DEFLATED
+from os.path import basename
 from base import MljarHttpClient
 from ..model.dataset import Dataset
 from ..exceptions import NotFoundException, MljarException, CreateDatasetException, DatasetUnknownException
@@ -106,7 +108,6 @@ class DatasetClient(MljarHttpClient):
         data, dataset_hash = self._prepare_data(X, y)
         datasets = self.get_datasets()
         dataset_details = [d for d in datasets if d.dataset_hash == dataset_hash]
-
         # dataset with specified hash does not exist
         if len(dataset_details) != 1:
             # add new dataset
@@ -134,20 +135,25 @@ class DatasetClient(MljarHttpClient):
 
     def add_new_dataset(self, data, y):
         logger.info('Add new dataset')
-        title = 'Dataset-' + str(uuid.uuid4())[:4] # set some random name
+        title = 'dataset-' + str(uuid.uuid4())[:4] # set some random name
         file_path = '/tmp/dataset-'+ str(uuid.uuid4())[:8]+'.csv'
-        logger.info('TODO Add compression here !!!')
+
         prediction_only = y is None
         # save to local storage
         data.to_csv(file_path, index=False)
+        # compress
+        file_path_zip = file_path + '.zip'
+        with ZipFile(file_path_zip, 'w', ZIP_DEFLATED) as myzip:
+            myzip.write(file_path, basename(file_path))
+
         # upload data to MLJAR storage
-        dst_path = DataUploadClient().upload_file(self.project_hid, file_path)
+        dst_path = DataUploadClient().upload_file(self.project_hid, file_path_zip)
         # create a dataset instance in DB
         data = {
             'title': title,
             'file_path': dst_path,
-            'file_name': file_path.split('/')[-1],
-            'file_size': round(os.path.getsize(file_path) / 1024.0/ 1024.0, 2),
+            'file_name': basename(file_path_zip),
+            'file_size': round(os.path.getsize(file_path_zip) / 1024.0/ 1024.0, 2),
             'derived': 0,
             'valid': 0,
             'parent_project': self.project_hid,
