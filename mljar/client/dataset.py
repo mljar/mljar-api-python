@@ -165,4 +165,9 @@ class DatasetClient(MljarHttpClient):
         response = self.request("POST", self.url, data = data)
         if response.status_code != 201:
             raise CreateDatasetException()
+
+        # clean data file
+        os.remove(file_path)
+        os.remove(file_path_zip)
+
         return Dataset.from_dict(response.json())
