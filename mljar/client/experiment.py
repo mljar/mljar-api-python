@@ -23,6 +23,7 @@ class ExperimentClient(MljarHttpClient):
         '''
         Gets all experiments in the project
         '''
+        logger.info('Get experiments, project id {}'.format(self.project_hid))
         response = self.request("GET", self.url+'?project_id='+self.project_hid)
         experiments_dict = response.json()
         return [Experiment.from_dict(expt) for expt in experiments_dict]
@@ -31,6 +32,7 @@ class ExperimentClient(MljarHttpClient):
         '''
         Get details of experiment.
         '''
+        logger.info('Get experiment, experiment id {}'.format(experiment_hid))
         try:
             response = self.request("GET", self.url+'/'+experiment_hid)
             return Experiment.from_dict(response.json())
@@ -45,7 +47,8 @@ class ExperimentClient(MljarHttpClient):
 
     def add_experiment_if_not_exists(self, train_dataset, experiment_title, project_task, \
                                         validation, algorithms, metric, \
-                                        tuning_mode, time_constraint, create_enseble):
+                                        tuning_mode, time_constraint, create_ensemble):
+        logger.info('Add experiment if not exists')
         # parameters validation
         if validation is None or validation == '' or validation not in MLJAR_VALIDATIONS:
             validation = MLJAR_DEFAULT_VALIDATION
@@ -56,12 +59,14 @@ class ExperimentClient(MljarHttpClient):
         if algorithms is None or algorithms == [] or algorithms == '':
             algorithms = MLJAR_DEFAULT_ALGORITHMS[project_task]
         # set default preprocessing if needed
+        logger.info('Set default preprocessing')
         dataset_preproc = {}
         if len(train_dataset.column_usage_min['cols_to_fill_na']) > 0:
             dataset_preproc['na_fill'] = 'na_fill_median'
         if len(train_dataset.column_usage_min['cols_to_convert_categorical']) > 0:
             dataset_preproc['convert_categorical'] = 'categorical_to_int'
         # create stub for new experiment
+        logger.info('Create new experiment stub')
         new_expt = Experiment(hid='', title=experiment_title, models_cnt=0, task=project_task,
                                 description='', metric=metric, validation_scheme=validation,
                                 total_timelog=0, bestalg=[], details={},
@@ -70,7 +75,7 @@ class ExperimentClient(MljarHttpClient):
                                         "algs":algorithms,
                                         "preproc": dataset_preproc,
                                         "single_limit":time_constraint,
-                                        "ensemble":create_enseble,
+                                        "ensemble":create_ensemble,
                                         "random_start_cnt": MLJAR_TUNING_MODES[tuning_mode]['random_start_cnt'],
                                         "hill_climbing_cnt": MLJAR_TUNING_MODES[tuning_mode]['hill_climbing_cnt']
                                         },

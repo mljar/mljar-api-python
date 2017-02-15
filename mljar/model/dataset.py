@@ -55,9 +55,10 @@ class Dataset(BaseModel):
         self.column_usage_min = column_usage_min
 
     def show(self):
-        print '-'*50,'\Data details (', self.hid,')\n','-'*50
+        print '-'*50,'\nData details (', self.hid,')\n','-'*50
         print 'Title:', self.title
         print 'File:', self.file_name
         print 'File size:', self.file_size
         print 'Accepted column usage:', self.accepted
+        print 'Column usage:', self.column_usage_min
         print '-'*50

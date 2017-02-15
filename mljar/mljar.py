@@ -28,7 +28,7 @@ class Mljar(object):
                         algorithms = [],
                         validation  = MLJAR_DEFAULT_VALIDATION,
                         tuning_mode = MLJAR_DEFAULT_TUNING_MODE,
-                        create_enseble  = MLJAR_DEFAULT_ENSEMBLE,
+                        create_ensemble  = MLJAR_DEFAULT_ENSEMBLE,
                         single_algorithm_time_limit = MLJAR_DEFAULT_TIME_CONSTRAINT):
         '''
         Set up MLJAR project and experiment.
@@ -75,7 +75,7 @@ class Mljar(object):
 
         self.project_title    = project
         self.experiment_title = experiment
-        self.create_enseble   = create_enseble
+        self.create_ensemble   = create_ensemble
         self.selected_algorithm = None
         self.dataset_title      = None
         self.verbose            = True
@@ -93,6 +93,8 @@ class Mljar(object):
         self.single_algorithm_time_limit = single_algorithm_time_limit
         self.wait_till_all_done = True
         self.selected_algorithm = None
+        self.project = None
+        self.experiment = None
 
     def fit(self, X, y, wait_till_all_done = True):
         '''
@@ -123,17 +125,20 @@ class Mljar(object):
         #
         # check if project with such title exists
         #
+        logger.info('MLJAR: add project')
         self.project = ProjectClient().create_project_if_not_exists(self.project_title, self.project_task)
         #
         # add a dataset to project
         #
+        logger.info('MLJAR: add dataset')
         self.dataset = DatasetClient(self.project.hid).add_dataset_if_not_exists(X, y)
         #
         # add experiment to project
         #
+        logger.info('MLJAR: add experiment')
         self.experiment = ExperimentClient(self.project.hid).add_experiment_if_not_exists(self.dataset, self.experiment_title, self.project_task, \
                                                     self.validation, self.algorithms, self.metric, \
-                                                    self.tuning_mode, self.single_algorithm_time_limit, self.create_enseble)
+                                                    self.tuning_mode, self.single_algorithm_time_limit, self.create_ensemble)
         if self.experiment is None:
             raise UndefinedExperimentException()
         #
@@ -148,7 +153,7 @@ class Mljar(object):
 
     def _wait_till_all_models_trained(self):
         WAIT_INTERVAL = 10.0
-        loop_max_counter = 10*360 # 10 hours of max waiting, is enough ;)
+        loop_max_counter = 24*360 # 24 hours of max waiting, is enough ;)
         results = None
         while True:
             loop_max_counter -= 1
@@ -164,6 +169,8 @@ class Mljar(object):
                 # print current state of the results
                 initiated_cnt, learning_cnt, done_cnt, error_cnt = self._get_results_stats(results)
                 eta = self._asses_total_training_time(results)
+                if initiated_cnt + learning_cnt + done_cnt + error_cnt == 0:
+                    eta = 'estimating'
                 sys.stdout.write("\rinitiated: {}, learning: {}, done: {}, error: {} | ETA: {} minutes                         ".format(initiated_cnt, learning_cnt, done_cnt, error_cnt, eta))
                 sys.stdout.flush()
 

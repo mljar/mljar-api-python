@@ -53,7 +53,9 @@ class Result(BaseModel):
         self.metric_additional = metric_additional
 
     def show(self):
-        print 'Result (', self.hid, ')', self.model_type, self.status
+        print 'Result (', self.hid, ') status:', self.status
+        print 'Model:', self.model_type
+        print 'Performance:', self.metric_value, 'on', self.metric_type, 'with', self.validation_scheme
 
     '''
     def _get_full_model_name(self, model_type):
@@ -65,4 +67,4 @@ class Result(BaseModel):
         if model_name == '':
             model_name = model_type
         return model_name
-    '''    
+    '''

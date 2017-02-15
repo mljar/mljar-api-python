@@ -18,6 +18,7 @@ class DataUploadClient(MljarHttpClient):
         return response.json()
 
     def upload_file(self, project_hid, file_path):
+        logger.info('File upload started')
         url_data = self._get_signed_url(project_hid, file_path)
         signed_url = url_data['signed_url']
         dst_path   = url_data['destination_path']

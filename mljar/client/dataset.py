@@ -28,6 +28,7 @@ class DatasetClient(MljarHttpClient):
         '''
         Gets all datasets in the project
         '''
+        logger.info('Get datasets, project id {}'.format(self.project_hid))
         response = self.request("GET", self.url+'?project_id='+self.project_hid)
         datasets_dict = response.json()
         return [Dataset.from_dict(ds) for ds in datasets_dict]
@@ -36,10 +37,12 @@ class DatasetClient(MljarHttpClient):
         '''
         Gets dataset for specified hid
         '''
+        logger.info('Get dataset, dataset id {}'.format(dataset_hid))
         try:
             response = self.request("GET", self.url+'/'+dataset_hid)
             return Dataset.from_dict(response.json())
         except NotFoundException:
+            logger.error('Dataset not found')
             return None
 
 
@@ -62,10 +65,13 @@ class DatasetClient(MljarHttpClient):
             data = pd.DataFrame(cols, columns=col_names)
         if isinstance(X, pd.DataFrame):
             if y is not None:
-                data = pd.concat((X,y), axis=1)
-                data.rename({data.columns[-1]:'target'}, inplace=True)
+                data = X
+                data['target'] = y
+                # todo: add search for target like attributes and rename
+                # "target", "class", "loss"
             else:
                 data = X
+
         dataset_hash = str(make_hash(data))
         return data, dataset_hash
 
@@ -79,15 +85,17 @@ class DatasetClient(MljarHttpClient):
         total_checks = 120
         for i in xrange(total_checks):
             datasets = self.get_datasets()
-            if len(datasets) == 0:
-                return
-            not_validated = [ds for ds in datasets if ds.valid == 0]
-            if len(not_validated) == 0:
-                return
-            #if i == 0:
-            #    print 'MLJAR is computing statistics for your dataset. Please wait.'
-            #sys.stdout.write('\rProgress: {0}%'.format(round(i/(total_checks*0.01))))
-            #sys.stdout.flush()
+            if datasets is not None:
+                logger.info('There are %s datasets' % len(datasets))
+                if len(datasets) == 0:
+                    logger.info('No datasets to wait for')
+                    return
+                not_validated = [ds for ds in datasets if ds.valid == 0]
+                if len(not_validated) == 0:
+                    logger.info('All datasets are valid')
+                    return
+            else:
+                logger.info('None datasets list')
             time.sleep(5)
         raise MljarException('There are some problems with reading one of your dataset. \
                             Please login to mljar.com and check your project for more details.')
@@ -103,7 +111,7 @@ class DatasetClient(MljarHttpClient):
         # wait till all dataset are validated
         # it does not return an object, it just waits
         self._wait_till_all_datasets_are_valid()
-
+        logger.info('All datasets are valid till now')
         # check if dataset already exists
         data, dataset_hash = self._prepare_data(X, y)
         datasets = self.get_datasets()
@@ -115,6 +123,8 @@ class DatasetClient(MljarHttpClient):
         else:
             dataset_details = dataset_details[0]
 
+        if dataset_details is None:
+            raise MljarException('There was a problem during new dataset addition')
         # wait till dataset is validated ...
         self._wait_till_all_datasets_are_valid()
         if not self._accept_dataset_column_usage(dataset_details.hid):
@@ -126,10 +136,18 @@ class DatasetClient(MljarHttpClient):
         if my_dataset.valid != 1:
             raise MljarException('Sorry, your dataset can not be read by MLJAR. \
                                     Please report this to us - we will fix it.')
+
+        if my_dataset.column_usage_min is None:
+            raise MljarException('Something bad happend! There is no attributes \
+                                    usage defined for your dataset')
+
         return my_dataset
 
     def _accept_dataset_column_usage(self, dataset_hid):
+        logger.info('Accept column usage')
         response = self.request("POST", '/accept_column_usage/',data = {'dataset_id': dataset_hid})
+        print 'Accept columns', response
+        print response.json()
         return response.status_code == 200
 
 
@@ -138,6 +156,7 @@ class DatasetClient(MljarHttpClient):
         title = 'dataset-' + str(uuid.uuid4())[:4] # set some random name
         file_path = '/tmp/dataset-'+ str(uuid.uuid4())[:8]+'.csv'
 
+        logger.info('Compress data before export')
         prediction_only = y is None
         # save to local storage
         data.to_csv(file_path, index=False)
@@ -162,10 +181,11 @@ class DatasetClient(MljarHttpClient):
             'scope': 'private',
             'prediction_only': 1 if prediction_only else 0
         }
+        logger.info('Add information about dataset into MLJAR')
         response = self.request("POST", self.url, data = data)
         if response.status_code != 201:
             raise CreateDatasetException()
-
+        logger.info('Clean tmp files')
         # clean data file
         os.remove(file_path)
         os.remove(file_path_zip)
