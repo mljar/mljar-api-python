@@ -171,6 +171,8 @@ class Mljar(object):
                 eta = self._asses_total_training_time(results)
                 if initiated_cnt + learning_cnt + done_cnt + error_cnt == 0:
                     eta = 'estimating'
+                else:
+                    eta = round(eta, 2)
                 sys.stdout.write("\rinitiated: {}, learning: {}, done: {}, error: {} | ETA: {} minutes                         ".format(initiated_cnt, learning_cnt, done_cnt, error_cnt, eta))
                 sys.stdout.flush()
 
@@ -180,6 +182,7 @@ class Mljar(object):
             except Exception as e:
                 logger.error('There is some problem while waiting for models, %s' % str(e))
         logger.info('Get the best result')
+        print '' # add new line
         # get the best result!
         return self._get_the_best_result(results)
 

@@ -51,7 +51,7 @@ class Project(BaseModel):
 
     def __str__(self):
         desc = 'Project id: {} title: {} task: {}\n'.format(self.hid, self.title, self.task)
-        desc += 'Hardware: {} data sources count: {} models count: {}\n'.format(self.hardware, len(self.datasets), self.model_cnt)
+        desc += 'Hardware: {} data sources count: {} models count: {}\n'.format(self.hardware, len(self.datasets), self.models_cnt)
         return desc
 
     def _task_to_full_name(self, task_short):
