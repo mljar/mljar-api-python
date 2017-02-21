@@ -146,8 +146,6 @@ class DatasetClient(MljarHttpClient):
     def _accept_dataset_column_usage(self, dataset_hid):
         logger.info('Accept column usage')
         response = self.request("POST", '/accept_column_usage/',data = {'dataset_id': dataset_hid})
-        print 'Accept columns', response
-        print response.json()
         return response.status_code == 200
 
 
