@@ -10,6 +10,7 @@ import time
 from mljar.client.project import ProjectClient
 from project_based_test import ProjectBasedTest
 from mljar.exceptions import BadValueException, IncorrectInputDataException
+from mljar.utils import MLJAR_DEFAULT_TUNING_MODE
 from mljar import Mljar
 
 class MljarTest(ProjectBasedTest):
@@ -62,7 +63,7 @@ class MljarTest(ProjectBasedTest):
 
     def test_default_tuning_mode(self):
         model = Mljar(project = self.proj_title, experiment = self.expt_title)
-        self.assertEqual(model.tuning_mode, 'Sport')
+        self.assertEqual(model.tuning_mode, MLJAR_DEFAULT_TUNING_MODE)
 
     def test_wrong_input_dim(self):
         with self.assertRaises(IncorrectInputDataException) as context:
@@ -73,6 +74,11 @@ class MljarTest(ProjectBasedTest):
             y = np.random.choice([0,1], samples+1, replace = True)
             model.fit(X, y)
 
+    def test_predict_without_fit(self):
+        """ Call predict without calling first fit method should return None """
+        model = Mljar(project = self.proj_title, experiment = self.expt_title)
+        pred = model.predict(self.X)
+        self.assertTrue(pred is None)
 
     def test_non_wait_fit(self):
         '''

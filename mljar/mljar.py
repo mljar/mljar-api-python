@@ -81,7 +81,7 @@ class Mljar(object):
         self.verbose            = True
 
         if tuning_mode is None:
-            tuning_mode = 'Sport'
+            tuning_mode = MLJAR_DEFAULT_TUNING_MODE
         if tuning_mode not in ['Normal', 'Sport', 'Insane']:
             raise BadValueException('There is a wrong tuning mode selected. \
                                         There are available modes: Normal, Sport, Insane.')

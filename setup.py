@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='mljar',
-    version='0.0.4',
+    version='0.0.5',
     description='Python wrapper over MLJAR API',
     long_description=long_description,
     url='https://github.com/mljar/mljar-api-python',
