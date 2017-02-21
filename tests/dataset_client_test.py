@@ -4,6 +4,7 @@ DatasetClient tests.
 import os
 import unittest
 import pandas as pd
+import numpy as np
 
 from mljar.client.project import ProjectClient
 from mljar.client.dataset import DatasetClient
@@ -12,23 +13,6 @@ from project_based_test import ProjectBasedTest
 
 class DatasetClientTest(ProjectBasedTest):
 
-    '''
-    @staticmethod
-    def clean_projects():
-        project_client = ProjectClient()
-        projects = project_client.get_projects()
-        for proj in projects:
-            if proj.title.startswith('Test'):
-                project_client.delete_project(proj.hid)
-
-    @classmethod
-    def setUpClass(cls):
-        DatasetClientTest.clean_projects()
-
-    @classmethod
-    def tearDownClass(cls):
-        DatasetClientTest.clean_projects()
-    '''
     def setUp(self):
         proj_title = 'Test project-01'
         proj_task = 'bin_class'
@@ -54,6 +38,27 @@ class DatasetClientTest(ProjectBasedTest):
         datasets = DatasetClient(self.project.hid).get_datasets()
         self.assertEqual(datasets, [])
 
+    def test_prepare_data(self):
+        """ Test _prepare_data method on numpy array data """
+        dc = DatasetClient(self.project.hid)
+        samples = 100
+        columns = 10
+        X = np.random.rand(samples, columns)
+        y = np.random.choice([0,1], samples, replace = True)
+        data, data_hash = dc._prepare_data(X, y)
+        self.assertNotEqual(data, None)
+        self.assertNotEqual(data_hash, None)
+        self.assertTrue(isinstance(data_hash, str))
+        self.assertEqual(11, len(data.columns))
+        self.assertTrue('target' in data.columns)
+        self.assertTrue('attribute_1' in data.columns)
+        self.assertTrue('attribute_10' in data.columns)
+
+    def test_get_dataset_for_wrong_hid(self):
+        """ Get dataset for wrong hid should return None """
+        dc = DatasetClient(self.project.hid)
+        dataset = dc.get_dataset('some-wrong-hid')
+        self.assertTrue(dataset is None)
 
     def test_add_dataset_for_training(self):
         # setup dataset client
