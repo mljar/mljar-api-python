@@ -33,5 +33,6 @@ class Prediction(BaseModel):
         self.alg_on_dataset_title = alg_on_dataset_title
         self.alg_metric = alg_metric
 
-    def show(self):
-        print 'Prediction (', self.hid, ')'
+    def __str__(self):
+        desc = 'Prediction id: {}\n'.format(self.hid)
+        return desc

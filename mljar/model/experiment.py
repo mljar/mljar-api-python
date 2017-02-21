@@ -49,14 +49,10 @@ class Experiment(BaseModel):
         self.compute_now = compute_now
         self.computation_started_at = computation_started_at
 
-    def show(self):
-        print '-'*50,'\Experiment details (', self.hid,')\n','-'*50
-        print 'Title:', self.title
-        print 'Metric:', self.metric
-        print 'Validation:', self.validation_scheme
-        print 'Algorithms:', self.params.get('algs', None)
-        print 'Single algorithm train time', self.params.get('single_limit', None), 'minutes'
-        print '-'*50
+    def __str__(self):
+        desc = 'Experiment id: {} title: {} metric: {} validation: {}\n'.format(self.hid, self.title, self.metric, self.validation_scheme)
+        desc += 'Algorithms: {} single algorithm train time: {}\n'.format(str(self.params.get('algs', None)), str(self.params.get('single_limit', None)))
+        return desc
 
     def equal(self, expt):
         # sort algorithms names before comparison

@@ -93,9 +93,9 @@ class ExperimentClient(MljarHttpClient):
                 if not expt.equal(new_expt):
                     print 'The experiment with specified title already exists, but it has different parameters than you specified.'
                     print 'Existing experiment'
-                    expt.show()
+                    print str(expt)
                     print 'New experiment'
-                    new_expt.show()
+                    print str(new_expt)
                     print 'Please rename your new experiment with new parameters setup.'
                     return None
             # there is only one experiment with selected title and has the same parameters

@@ -71,6 +71,11 @@ class DatasetClientTest(ProjectBasedTest):
         my_dataset_2 = dc.get_dataset(my_dataset.hid)
         self.assertEqual(my_dataset.hid, my_dataset_2.hid)
         self.assertEqual(my_dataset.title, my_dataset_2.title)
+        # test __str__ method
+        self.assertTrue('id' in str(my_dataset_2))
+        self.assertTrue('title' in str(my_dataset_2))
+        self.assertTrue('file' in str(my_dataset_2))
+
 
     def test_add_dataset_for_prediction(self):
         # setup dataset client

@@ -99,3 +99,9 @@ class ResultClientTest(ProjectBasedTest):
         # all results from project should be returned
         results_2 = rc.get_results('wrong-hid')
         self.assertEqual(len(project_results), len(results_2))
+
+        for r in project_results:
+            # test __str__ method
+            self.assertTrue('id' in str(r))
+            self.assertTrue('model' in str(r))
+            self.assertTrue('status' in str(r))

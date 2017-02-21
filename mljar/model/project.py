@@ -49,18 +49,10 @@ class Project(BaseModel):
         self.compute_now = compute_now
         self.insights = insights
 
-
-    def show(self):
-        print '-'*50,'\nProject details (', self.hid,')\n','-'*50
-        print 'Title:', self.title
-        if self.description:
-            print 'Description:', self.description
-        print 'Task:', self.task
-        print 'Hardware:', self.hardware
-        print 'User data sources count:', len(self.datasets)
-        print 'Models count:', self.models_cnt
-        print '-'*50
-
+    def __str__(self):
+        desc = 'Project id: {} title: {} task: {}\n'.format(self.hid, self.title, self.task)
+        desc += 'Hardware: {} data sources count: {} models count: {}\n'.format(self.hardware, len(self.datasets), self.model_cnt)
+        return desc
 
     def _task_to_full_name(self, task_short):
         tasks = {'bin_class': "Binary classification",

@@ -66,6 +66,11 @@ class ExperimentClientTest(ProjectBasedTest):
         self.assertEqual(experiment_2.metric, experiment.metric)
         self.assertEqual(experiment_2.validation_scheme, experiment.validation_scheme)
         self.assertTrue(experiment.equal(experiment_2))
+        # test __str__ method
+        self.assertTrue('id' in str(experiment_2))
+        self.assertTrue('title' in str(experiment_2))
+        self.assertTrue('metric' in str(experiment_2))
+        self.assertTrue('validation' in str(experiment_2))
 
     def test_create_if_exists(self):
         """

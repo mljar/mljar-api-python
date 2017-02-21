@@ -40,6 +40,11 @@ class ProjectClientTest(unittest.TestCase):
         self.assertEqual(new_project.task, project.task)
         self.assertEqual(new_project.scope, project.scope)
         self.assertEqual(new_project.hardware, project.hardware)
+        # test __str__ method
+        self.assertTrue('id' in str(new_project))
+        self.assertTrue('title' in str(new_project))
+        self.assertTrue('task' in str(new_project))
+
         pc.delete_project(new_project.hid)
         project = pc.get_project(hid = new_project.hid)
         self.assertEqual(project, None)

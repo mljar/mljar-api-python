@@ -52,10 +52,10 @@ class Result(BaseModel):
         self.models_saved = models_saved
         self.metric_additional = metric_additional
 
-    def show(self):
-        print 'Result (', self.hid, ') status:', self.status
-        print 'Model:', self.model_type
-        print 'Performance:', self.metric_value, 'on', self.metric_type, 'with', self.validation_scheme
+    def __str__(self):
+        desc = 'Result id: {} model: {} status: {}\n'.format(self.hid, self.model_type, self.status)
+        desc += 'Performance: {} on {} with {}\n'.format(str(self.metric_value), self.metric_type, self.validation_scheme)
+        return desc
 
     '''
     def _get_full_model_name(self, model_type):
