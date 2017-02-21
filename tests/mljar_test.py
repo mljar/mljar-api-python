@@ -9,6 +9,7 @@ import time
 
 from mljar.client.project import ProjectClient
 from project_based_test import ProjectBasedTest
+from mljar.exceptions import BadValueException, IncorrectInputDataException
 from mljar import Mljar
 
 class MljarTest(ProjectBasedTest):
@@ -49,6 +50,29 @@ class MljarTest(ProjectBasedTest):
         # get MSE
         score = self.mse(pred, self.y)
         self.assertTrue(score < 0.1)
+
+    def test_empty_project_title(self):
+        with self.assertRaises(BadValueException) as context:
+            model = Mljar(project = '', experiment = '')
+
+    def test_wrong_tuning_mode(self):
+        with self.assertRaises(BadValueException) as context:
+            model = Mljar(project = self.proj_title, experiment = self.expt_title,
+                            tuning_mode = 'Crazy')
+
+    def test_default_tuning_mode(self):
+        model = Mljar(project = self.proj_title, experiment = self.expt_title)
+        self.assertEqual(model.tuning_mode, 'Sport')
+
+    def test_wrong_input_dim(self):
+        with self.assertRaises(IncorrectInputDataException) as context:
+            model = Mljar(project = self.proj_title, experiment = self.expt_title)
+            samples = 100
+            columns = 10
+            X = np.random.rand(samples, columns)
+            y = np.random.choice([0,1], samples+1, replace = True)
+            model.fit(X, y)
+
 
     def test_non_wait_fit(self):
         '''
