@@ -1,3 +1,5 @@
+|Build Status| |PyPI version| |Coverage Status|
+
 mljar-api-python
 ================
 
@@ -65,6 +67,11 @@ What's going on?
 -  I think this is really amazing! What do you think? Please let us know
    at ``contact@mljar.com``.
 
+Examples
+--------
+
+The examples are `here! <https://github.com/mljar/mljar-examples>`__.
+
 Testing
 -------
 
@@ -74,7 +81,9 @@ To run tests with command:
 
     python -m tests.run
 
-Examples
---------
-
-Coming soon!
+.. |Build Status| image:: https://travis-ci.org/mljar/mljar-api-python.svg?branch=master
+   :target: https://travis-ci.org/mljar/mljar-api-python
+.. |PyPI version| image:: https://badge.fury.io/py/mljar.svg
+   :target: https://badge.fury.io/py/mljar
+.. |Coverage Status| image:: https://coveralls.io/repos/github/mljar/mljar-api-python/badge.svg?branch=master
+   :target: https://coveralls.io/github/mljar/mljar-api-python?branch=master
