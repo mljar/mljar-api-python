@@ -26,7 +26,10 @@ class Mljar(object):
     def __init__(self, project, experiment,
                         metric = '',
                         algorithms = [],
-                        validation  = MLJAR_DEFAULT_VALIDATION,
+                        validation_kfolds = MLJAR_DEFAULT_FOLDS,
+                        validation_shuffle = MLJAR_DEFAULT_SHUFFLE,
+                        validation_stratify = MLJAR_DEFAULT_STRATIFY,
+                        validation_train_split = MLJAR_DEFAULT_TRAIN_SPLIT,
                         tuning_mode = MLJAR_DEFAULT_TUNING_MODE,
                         create_ensemble  = MLJAR_DEFAULT_ENSEMBLE,
                         single_algorithm_time_limit = MLJAR_DEFAULT_TIME_CONSTRAINT):
@@ -60,12 +63,20 @@ class Mljar(object):
                      - rmse which is Root Mean Square Error
                      - mse which is for Mean Square Error
                      - mase which is for Mean Absolute Error
-            validation: The schema of validation that will be used for model search and tuning. There is only available
-                        validation with cross validation. Proper values are:
-                         - 3fold for 3-fold Stratified CV
-                         - 5fold for 5-fold Stratified CV
-                         - 10fold for 10-fold Stratified CV
-                        The default is 5-fold CV.
+            validation_kfolds: The number of folds to be used in validation,
+                            it is omitted if validation_train_split is not None
+                            or there is validation dataset provided.
+                            It can be number from 2 to 15.
+            validation_shuffle: The boolean which specify if shuffle samples before training.
+                            It is used in k-fold CV and in validation split. Default is set True.
+                            It is ignored when validating with separate dataset.
+            validation_stratify: The boolean which decides whether samples will be
+                            divided into folds with the same class distribution.
+                            In regression tasks this flag is ignored. Default is set to True.
+            validation_train_split: The ratio how to split training dataset into train and validation.
+                            This ratio specify what ratio from input data should be used in training.
+                            It should be from (0.05,0.95) range. If it is not None, then
+                            validation_kfolds variable is ignored.
             single_algorithm_time_limit: The time in minutes that will be spend for training single algorithm.
                         Default value is 5 minutes.
         '''
@@ -89,19 +100,34 @@ class Mljar(object):
         # below params are validated later
         self.algorithms = algorithms
         self.metric = metric
-        self.validation = validation
         self.single_algorithm_time_limit = single_algorithm_time_limit
         self.wait_till_all_done = True
         self.selected_algorithm = None
         self.project = None
         self.experiment = None
 
-    def fit(self, X, y, wait_till_all_done = True):
+        self.validation_kfolds = validation_kfolds
+        self.validation_shuffle = validation_shuffle
+        self.validation_stratify = validation_stratify
+        self.validation_train_split = validation_train_split
+
+        if self.validation_kfolds is not None:
+            if self.validation_kfolds < 2 or self.validation_kfolds > 15:
+                raise MljarException('Wrong validation_kfolds parameter value, it should be in [2, 15] range.')
+
+        if self.validation_train_split is not None:
+            if self.validation_train_split < 0.05 or self.validation_train_split > 0.95:
+                raise MljarException('Wrong validation_train_split parameter value, it should be in (0.05, 0.95) range.')
+
+
+    def fit(self, X, y, validation_data = None, wait_till_all_done = True):
         '''
         Fit models with MLJAR engine.
         Args:
             X: The numpy or pandas matrix with training data.
             y: The numpy or pandas vector with target values.
+            validation_data: Tuple (X,y) with validation data.If set to None, then
+                                the k-fold CV or train split validation will be used.
             wait_till_all_done: The flag which decides if fit function will wait
                                 till experiment is done.
         '''
@@ -113,12 +139,12 @@ class Mljar(object):
             raise IncorrectInputDataException('Sorry, there is a missmatch between X and y matrices shapes')
 
         try:
-            self._start_experiment(X, y)
+            self._start_experiment(X, y, validation_data)
         except Exception as e:
             print 'Ups, %s' % str(e)
 
 
-    def _start_experiment(self, X, y):
+    def _start_experiment(self, X, y, validation_data = None):
 
         # define project task
         self.project_task = 'bin_class' if len(np.unique(y)) == 2 else 'reg'
@@ -130,14 +156,25 @@ class Mljar(object):
         #
         # add a dataset to project
         #
-        logger.info('MLJAR: add dataset')
+        logger.info('MLJAR: add training dataset')
         self.dataset = DatasetClient(self.project.hid).add_dataset_if_not_exists(X, y)
+
+        self.dataset_vald = None
+        if validation_data is not None:
+            if len(validation_data) == 2:
+                raise MljarException('Wrong format of validation data. It should be tuple (X,y)')
+            logger.info('MLJAR: add validation dataset')
+            X_vald, y_vald = validation_data
+            self.dataset_vald = DatasetClient(self.project.hid).add_dataset_if_not_exists(X_vald, y_vald)
         #
         # add experiment to project
         #
         logger.info('MLJAR: add experiment')
-        self.experiment = ExperimentClient(self.project.hid).add_experiment_if_not_exists(self.dataset, self.experiment_title, self.project_task, \
-                                                    self.validation, self.algorithms, self.metric, \
+        self.experiment = ExperimentClient(self.project.hid).add_experiment_if_not_exists(self.dataset, self.dataset_vald, \
+                                                    self.experiment_title, self.project_task, \
+                                                    self.validation_kfolds, self.validation_shuffle, \
+                                                    self.validation_stratify, self.validation_train_split, \
+                                                    self.algorithms, self.metric, \
                                                     self.tuning_mode, self.single_algorithm_time_limit, self.create_ensemble)
         if self.experiment is None:
             raise UndefinedExperimentException()

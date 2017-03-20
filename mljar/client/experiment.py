@@ -1,4 +1,5 @@
 import json
+import warnings
 from base import MljarHttpClient
 from ..model.experiment import Experiment
 from ..exceptions import NotFoundException, MljarException, CreateExperimentException
@@ -8,7 +9,7 @@ from dataupload import DataUploadClient
 from ..log import logger
 
 from ..utils import make_hash
-from ..utils import MLJAR_VALIDATIONS, MLJAR_METRICS, MLJAR_TUNING_MODES, MLJAR_DEFAULT_ALGORITHMS, MLJAR_DEFAULT_METRICS
+from ..utils import MLJAR_METRICS, MLJAR_TUNING_MODES, MLJAR_DEFAULT_ALGORITHMS, MLJAR_DEFAULT_METRICS
 
 class ExperimentClient(MljarHttpClient):
     '''
@@ -45,13 +46,32 @@ class ExperimentClient(MljarHttpClient):
             raise CreateExperimentException()
         return Experiment.from_dict(response.json())
 
-    def add_experiment_if_not_exists(self, train_dataset, experiment_title, project_task, \
-                                        validation, algorithms, metric, \
+    def add_experiment_if_not_exists(self, train_dataset, vald_dataset, experiment_title, project_task, \
+                                        validation_kfolds, validation_shuffle, \
+                                        validation_stratify, validation_train_split, \
+                                        algorithms, metric, \
                                         tuning_mode, time_constraint, create_ensemble):
         logger.info('Add experiment if not exists')
         # parameters validation
-        if validation is None or validation == '' or validation not in MLJAR_VALIDATIONS:
-            validation = MLJAR_DEFAULT_VALIDATION
+        # validation with dataset
+        if vald_dataset is not None:
+            validation = "With dataset"
+        else:
+            # do train/validation split
+            if validation_train_split is not None:
+                percents = int(validation_train_split * 100.0)
+                validation = "Split {}/{}".format(percents, 100-percents)
+            else:
+                validation = "{}-fold CV".format(validation_kfolds)
+
+            # shuffle and stratify
+            if validation_shuffle:
+                validation += ", Shuffle"
+            if validation_stratify and project_task == 'bin_class':
+                validation += ", Stratify"
+            if validation_stratify and project_task != 'bin_class':
+                warnings.warn('Cannot use stratify in validation for your project task. Omitting this option in validation.')
+
         if metric is None or metric == '' or metric not in MLJAR_METRICS:
             metric = MLJAR_DEFAULT_METRICS[project_task]
         if tuning_mode is None or tuning_mode == '' or tuning_mode not in MLJAR_TUNING_MODES:
@@ -67,18 +87,22 @@ class ExperimentClient(MljarHttpClient):
             dataset_preproc['convert_categorical'] = 'categorical_to_int'
         # create stub for new experiment
         logger.info('Create new experiment stub')
+        expt_params = {
+                "train_dataset": {"id": train_dataset.hid, 'title': train_dataset.title},
+                "algs":algorithms,
+                "preproc": dataset_preproc,
+                "single_limit":time_constraint,
+                "ensemble":create_ensemble,
+                "random_start_cnt": MLJAR_TUNING_MODES[tuning_mode]['random_start_cnt'],
+                "hill_climbing_cnt": MLJAR_TUNING_MODES[tuning_mode]['hill_climbing_cnt']
+                }
+        if vald_dataset is not None:
+            expt_params['vald_dataset'] = {"id": vald_dataset.hid, 'title': vald_dataset.title}
+
         new_expt = Experiment(hid='', title=experiment_title, models_cnt=0, task=project_task,
                                 description='', metric=metric, validation_scheme=validation,
                                 total_timelog=0, bestalg=[], details={},
-                                params={
-                                        "train_dataset": {"id": train_dataset.hid, 'title': train_dataset.title},
-                                        "algs":algorithms,
-                                        "preproc": dataset_preproc,
-                                        "single_limit":time_constraint,
-                                        "ensemble":create_ensemble,
-                                        "random_start_cnt": MLJAR_TUNING_MODES[tuning_mode]['random_start_cnt'],
-                                        "hill_climbing_cnt": MLJAR_TUNING_MODES[tuning_mode]['hill_climbing_cnt']
-                                        },
+                                params=expt_params,
                                 compute_now=0, computation_started_at=None, created_at=None,
                                 created_by=None, parent_project=self.project_hid)
 

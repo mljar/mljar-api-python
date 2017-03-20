@@ -17,7 +17,10 @@ class ExperimentClientTest(ProjectBasedTest):
         proj_title = 'Test project-01'
         proj_task = 'bin_class'
         self.expt_title = 'Test experiment-01'
-        self.validation = '5fold'
+        self.validation_kfolds = 5
+        self.validation_shuffle = True
+        self.validation_stratify = True
+        self.validation_train_split = None
         self.algorithms = ['xgb']
         self.metric = 'logloss'
         self.tuning_mode = 'Normal'
@@ -26,21 +29,21 @@ class ExperimentClientTest(ProjectBasedTest):
         # setup project
         self.project_client = ProjectClient()
         self.project = self.project_client.create_project(title = proj_title, task = proj_task)
-        # load data
+        # add training data
         df = pd.read_csv('tests/data/test_1.csv')
         cols = ['sepal length', 'sepal width', 'petal length', 'petal width']
         target = 'class'
         dc = DatasetClient(self.project.hid)
-        # add dataset
         self.dataset = dc.add_dataset_if_not_exists(df[cols], df[target])
+
 
     def tearDown(self):
         # clean
         self.project_client.delete_project(self.project.hid)
 
-    def test_create(self):
+    def test_create_with_kfold_cv(self):
         """
-        Create experiment test.
+        Create experiment test with k-fold CV.
         """
         # add experiment
         ec = ExperimentClient(self.project.hid)
@@ -49,12 +52,14 @@ class ExperimentClientTest(ProjectBasedTest):
         experiments = ec.get_experiments()
         self.assertEqual(experiments, [])
         # create new experiment
-        experiment = ec.add_experiment_if_not_exists(self.dataset, self.expt_title, self.project.task,
-                                            self.validation, self.algorithms, self.metric,
+        experiment = ec.add_experiment_if_not_exists(self.dataset, None, self.expt_title, self.project.task,
+                                            self.validation_kfolds, self.validation_shuffle,
+                                            self.validation_stratify, self.validation_train_split,
+                                            self.algorithms, self.metric,
                                             self.tuning_mode, self.time_constraint, self.create_enseble)
         self.assertNotEqual(experiment, None)
         self.assertEqual(experiment.title, self.expt_title)
-        self.assertEqual(experiment.validation_scheme, self.validation)
+        self.assertEqual(experiment.validation_scheme, "5-fold CV, Shuffle, Stratify")
         self.assertEqual(experiment.metric, self.metric)
         # get all experiments, should be only one
         experiments = ec.get_experiments()
@@ -72,9 +77,9 @@ class ExperimentClientTest(ProjectBasedTest):
         self.assertTrue('metric' in str(experiment_2))
         self.assertTrue('validation' in str(experiment_2))
 
-    def test_create_if_exists(self):
+    def test_create_with_train_split(self):
         """
-        Create experiment after experiment is already in project.
+        Create experiment with validation by train split.
         """
         # add experiment
         ec = ExperimentClient(self.project.hid)
@@ -83,16 +88,68 @@ class ExperimentClientTest(ProjectBasedTest):
         experiments = ec.get_experiments()
         self.assertEqual(experiments, [])
         # create new experiment
-        experiment = ec.add_experiment_if_not_exists(self.dataset, self.expt_title, self.project.task,
-                                            self.validation, self.algorithms, self.metric,
+        experiment = ec.add_experiment_if_not_exists(self.dataset, None, self.expt_title, self.project.task,
+                                            self.validation_kfolds, self.validation_shuffle,
+                                            self.validation_stratify, 0.72,
+                                            self.algorithms, self.metric,
+                                            self.tuning_mode, self.time_constraint, self.create_enseble)
+        self.assertNotEqual(experiment, None)
+        self.assertEqual(experiment.title, self.expt_title)
+        self.assertEqual(experiment.validation_scheme, "Split 72/28, Shuffle, Stratify")
+
+
+    def test_create_with_validation_dataset(self):
+        """
+        Create experiment with validation with dataset.
+        """
+        # add vald dataset
+        cols = ['sepal length', 'sepal width', 'petal length', 'petal width']
+        target = 'class'
+        df = pd.read_csv('tests/data/test_1_vald.csv')
+        dc = DatasetClient(self.project.hid)
+        vald_dataset = dc.add_dataset_if_not_exists(df[cols], df[target])
+        # add experiment
+        ec = ExperimentClient(self.project.hid)
+        self.assertNotEqual(ec, None)
+        # there should be none experiments
+        experiments = ec.get_experiments()
+        self.assertEqual(experiments, [])
+        # create new experiment
+        experiment = ec.add_experiment_if_not_exists(self.dataset, vald_dataset, self.expt_title, self.project.task,
+                                            self.validation_kfolds, self.validation_shuffle,
+                                            self.validation_stratify, 0.72,
+                                            self.algorithms, self.metric,
+                                            self.tuning_mode, self.time_constraint, self.create_enseble)
+        self.assertNotEqual(experiment, None)
+        self.assertEqual(experiment.title, self.expt_title)
+        self.assertEqual(experiment.validation_scheme, "With dataset")
+
+
+    def test_create_if_exists(self):
+        '''
+        Create experiment after experiment is already in project.
+        '''
+        # add experiment
+        ec = ExperimentClient(self.project.hid)
+        self.assertNotEqual(ec, None)
+        # there should be none experiments
+        experiments = ec.get_experiments()
+        self.assertEqual(experiments, [])
+        # create new experiment
+        experiment = ec.add_experiment_if_not_exists(self.dataset, None, self.expt_title, self.project.task,
+                                            self.validation_kfolds, self.validation_shuffle,
+                                            self.validation_stratify, self.validation_train_split,
+                                            self.algorithms, self.metric,
                                             self.tuning_mode, self.time_constraint, self.create_enseble)
         self.assertNotEqual(experiment, None)
         # get all experiments, should be only one
         experiments = ec.get_experiments()
         self.assertEqual(len(experiments), 1)
         # try to create the same experiment
-        experiment_2 = ec.add_experiment_if_not_exists(self.dataset, self.expt_title, self.project.task,
-                                            self.validation, self.algorithms, self.metric,
+        experiment_2 = ec.add_experiment_if_not_exists(self.dataset, None, self.expt_title, self.project.task,
+                                            self.validation_kfolds, self.validation_shuffle,
+                                            self.validation_stratify, self.validation_train_split,
+                                            self.algorithms, self.metric,
                                             self.tuning_mode, self.time_constraint, self.create_enseble)
         self.assertNotEqual(experiment, None)
         # get all experiments, should be only one

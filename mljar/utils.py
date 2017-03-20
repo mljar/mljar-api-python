@@ -18,12 +18,11 @@ MLJAR_METRICS = {
             'mae'    : 'Mean Absolute Error'
             }
 
-MLJAR_VALIDATIONS = {
-            "3fold" : "3-fold Stratified CV",
-            "5fold" : "5-fold Stratified CV",
-            "10fold": "10-fold Stratified CV",
-            "with_validation": "validation dataset"
-            }
+MLJAR_DEFAULT_FOLDS = 5
+MLJAR_DEFAULT_SHUFFLE = True
+MLJAR_DEFAULT_STRATIFY = True
+MLJAR_DEFAULT_TRAIN_SPLIT = None
+
 
 MLJAR_BIN_CLASS = {
             "xgb"   :"Extreme Gradient Boosting",
@@ -63,7 +62,6 @@ MLJAR_DEFAULT_ALGORITHMS = {
             'regression': ['xgbr', 'lgbr']
             }
 
-MLJAR_DEFAULT_VALIDATION      = '5fold'
 MLJAR_DEFAULT_ENSEMBLE        = True
 MLJAR_DEFAULT_TUNING_MODE     = 'Normal'
 MLJAR_DEFAULT_TIME_CONSTRAINT = '5' # minutes
