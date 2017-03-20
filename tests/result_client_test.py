@@ -20,7 +20,10 @@ class ResultClientTest(ProjectBasedTest):
         proj_title = 'Test project-01'
         proj_task = 'bin_class'
         self.expt_title = 'Test experiment-01'
-        self.validation = '5fold'
+        self.validation_kfolds = 5
+        self.validation_shuffle = True
+        self.validation_stratify = True
+        self.validation_train_split = None
         self.algorithms = ['xgb']
         self.metric = 'logloss'
         self.tuning_mode = 'Normal'
@@ -60,8 +63,10 @@ class ResultClientTest(ProjectBasedTest):
         # add experiment
         ec = ExperimentClient(self.project.hid)
         # create new experiment
-        self.experiment = ec.add_experiment_if_not_exists(self.dataset, self.expt_title, self.project.task,
-                                            self.validation, self.algorithms, self.metric,
+        self.experiment = ec.add_experiment_if_not_exists(self.dataset, None, self.expt_title, self.project.task,
+                                            self.validation_kfolds, self.validation_shuffle,
+                                            self.validation_stratify, self.validation_train_split,
+                                            self.algorithms, self.metric,
                                             self.tuning_mode, self.time_constraint, self.create_enseble)
         # wait some time till models are initialized
         time.sleep(60)
@@ -83,8 +88,10 @@ class ResultClientTest(ProjectBasedTest):
         # add experiment
         ec = ExperimentClient(self.project.hid)
         # create new experiment
-        self.experiment = ec.add_experiment_if_not_exists(self.dataset, self.expt_title, self.project.task,
-                                            self.validation, self.algorithms, self.metric,
+        self.experiment = ec.add_experiment_if_not_exists(self.dataset, None, self.expt_title, self.project.task,
+                                            self.validation_kfolds, self.validation_shuffle,
+                                            self.validation_stratify, self.validation_train_split,
+                                            self.algorithms, self.metric,
                                             self.tuning_mode, self.time_constraint, self.create_enseble)
         # wait some time till models are initialized
         time.sleep(60)

@@ -29,9 +29,9 @@ class ProjectSchema(Schema):
 class Project(BaseModel):
     schema = ProjectSchema(strict=True)
 
-    def __init__(self, hid, title, description, task, hardware, scope, info, created_at, created_by,
-                    experiments_cnt, models_cnt, datasets, topalg,
-                    compute_now, insights, total_timelog = 0):
+    def __init__(self, hid, title, description, task, hardware, scope, created_at, created_by,
+                    models_cnt, compute_now, experiments_cnt = None, datasets = None, topalg = None,
+                    insights = None, total_timelog = 0, info = None):
         self.hid = hid
         self.title = title
         self.description = description

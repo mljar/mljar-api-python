@@ -42,7 +42,7 @@ class MljarTest(ProjectBasedTest):
         '''
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
                         algorithms = ['xgb'], metric='logloss',
-                        validation='3fold', tuning_mode='Normal')
+                        validation_kfolds=3, tuning_mode='Normal')
         self.assertTrue(model is not None)
         # fit models and wait till all models are trained
         model.fit(X = self.X, y = self.y)
@@ -51,6 +51,72 @@ class MljarTest(ProjectBasedTest):
         # get MSE
         score = self.mse(pred, self.y)
         self.assertTrue(score < 0.1)
+
+    def test_usage_with_defaults(self):
+        '''
+        Test usage with defaults.
+        '''
+        model = Mljar(project = self.proj_title, experiment = self.expt_title)
+        self.assertTrue(model is not None)
+        # fit models and wait till all models are trained
+        model.fit(X = self.X, y = self.y, wait_till_all_done = False)
+        # wait some time
+        time.sleep(120) # wait a little longer - there are a lot of models
+        # run prediction
+        pred = model.predict(self.X)
+        # get MSE
+        score = self.mse(pred, self.y)
+        self.assertTrue(score < 0.5)
+        # check default validation
+        self.assertEqual(model.selected_algorithm.validation_scheme, "5-fold CV, Shuffle, Stratify")
+
+    def test_usage_with_train_split(self):
+        '''
+        Test usage with train split.
+        '''
+        model = Mljar(project = self.proj_title, experiment = self.expt_title,
+                    validation_train_split = 0.8, algorithms = ['xgb'], tuning_mode='Normal')
+        self.assertTrue(model is not None)
+        # fit models and wait till all models are trained
+        model.fit(X = self.X, y = self.y, wait_till_all_done = False)
+        # wait some time
+        time.sleep(60)
+        # run prediction
+        pred = model.predict(self.X)
+        # get MSE
+        score = self.mse(pred, self.y)
+        self.assertTrue(score < 0.5)
+        # check default validation
+        self.assertEqual(model.selected_algorithm.validation_scheme, "Split 80/20, Shuffle, Stratify")
+
+
+    def test_usage_with_validation_dataset(self):
+        '''
+        Test usage with validation dataset.
+        '''
+        model = Mljar(project = self.proj_title, experiment = self.expt_title,
+                            algorithms = ['xgb'], tuning_mode='Normal')
+        self.assertTrue(model is not None)
+        # load validation data
+        df = pd.read_csv('tests/data/test_1_vald.csv')
+        cols = ['sepal length', 'sepal width', 'petal length', 'petal width']
+        target = 'class'
+        X_vald = df[cols]
+        y_vald = df[target]
+        # fit models and wait till all models are trained
+        model.fit(X = self.X, y = self.y, validation_data=(X_vald, y_vald), wait_till_all_done = False)
+        # wait some time
+        time.sleep(80)
+        # run prediction
+        pred = model.predict(self.X)
+        # get MSE
+        score = self.mse(pred, self.y)
+        self.assertTrue(score < 0.5)
+        # check default validation
+        self.assertEqual(model.selected_algorithm.validation_scheme, "With dataset")
+
+
+
 
     def test_empty_project_title(self):
         with self.assertRaises(BadValueException) as context:
@@ -86,7 +152,7 @@ class MljarTest(ProjectBasedTest):
         '''
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
                         algorithms = ['xgb'], metric='logloss',
-                        validation='3fold', tuning_mode='Normal')
+                        validation_kfolds=3, tuning_mode='Normal')
         self.assertTrue(model is not None)
         # fit models, just start computation and do not wait
         start_time = time.time()
@@ -124,7 +190,7 @@ class MljarTest(ProjectBasedTest):
         '''
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
                         algorithms = ['xgb'], metric='logloss',
-                        validation='3fold', tuning_mode='Normal')
+                        validation_kfolds=3, tuning_mode='Normal')
         self.assertTrue(model is not None)
         # fit models and wait till all models are trained
         model.fit(X = self.X, y = self.y)
@@ -153,7 +219,7 @@ class MljarTest(ProjectBasedTest):
         start_time = time.time()
         model_2 = Mljar(project = self.proj_title, experiment = self.expt_title,
                         algorithms = ['xgb'], metric='logloss',
-                        validation='3fold', tuning_mode='Normal')
+                        validation_kfolds=3, tuning_mode='Normal')
         self.assertTrue(model_2 is not None)
         # re-use trained models
         model_2.fit(X = self.X, y = self.y)
@@ -184,3 +250,6 @@ class MljarTest(ProjectBasedTest):
         score = self.mse(pred, self.y)
         self.assertTrue(score < 0.1)
     '''
+
+if __name__ == "__main__":
+    unittest.main()

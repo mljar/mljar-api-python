@@ -6,7 +6,8 @@ import time
 import numpy as np
 
 from utils import *
-from exceptions import BadValueException, IncorrectInputDataException, UndefinedExperimentException
+from exceptions import IncorrectInputDataException, UndefinedExperimentException
+from exceptions import MljarException, BadValueException
 
 from client.project import ProjectClient
 from client.dataset import DatasetClient
@@ -157,15 +158,15 @@ class Mljar(object):
         # add a dataset to project
         #
         logger.info('MLJAR: add training dataset')
-        self.dataset = DatasetClient(self.project.hid).add_dataset_if_not_exists(X, y)
+        self.dataset = DatasetClient(self.project.hid).add_dataset_if_not_exists(X, y, title_prefix = 'Training-')
 
         self.dataset_vald = None
         if validation_data is not None:
-            if len(validation_data) == 2:
+            if len(validation_data) != 2:
                 raise MljarException('Wrong format of validation data. It should be tuple (X,y)')
             logger.info('MLJAR: add validation dataset')
             X_vald, y_vald = validation_data
-            self.dataset_vald = DatasetClient(self.project.hid).add_dataset_if_not_exists(X_vald, y_vald)
+            self.dataset_vald = DatasetClient(self.project.hid).add_dataset_if_not_exists(X_vald, y_vald, title_prefix = 'Validation-')
         #
         # add experiment to project
         #
