@@ -8,6 +8,7 @@ import unittest
 import time
 
 from mljar.client.project import ProjectClient
+from mljar.client.dataset import DatasetClient
 from project_based_test import ProjectBasedTest
 from mljar.exceptions import BadValueException, IncorrectInputDataException
 from mljar.utils import MLJAR_DEFAULT_TUNING_MODE
@@ -26,9 +27,10 @@ class MljarTest(ProjectBasedTest):
         self.X = df[cols]
         self.y = df[target]
 
-    #def tearDown(self):
-    #    # clean
-    #    ProjectBasedTest.clean_projects()
+    def tearDown(self):
+        # clean
+        ProjectBasedTest.clean_projects()
+
 
     def mse(self, predictions, targets):
         predictions = np.array(predictions)
@@ -38,12 +40,10 @@ class MljarTest(ProjectBasedTest):
 
 
     def test_compute_prediction(self):
-        '''
-        Test the most common usage.
-        '''
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
-                        algorithms = ['rfc'], metric='logloss',
-                        validation_kfolds=3, tuning_mode='Normal')
+                        algorithms = ['rfc'], metric = 'logloss',
+                        validation_kfolds = 3, tuning_mode = 'Normal',
+                        single_algorithm_time_limit = 1)
         self.assertTrue(model is not None)
         # fit models and wait till all models are trained
         model.fit(X = self.X, y = self.y)
@@ -52,19 +52,29 @@ class MljarTest(ProjectBasedTest):
         project_id = model.project.hid
         # get model id
         model_id = model.selected_algorithm.hid
+
+        dc = DatasetClient(project_id)
+        init_datasets_cnt = len(dc.get_datasets())
         # compute predictions
         pred = Mljar.compute_prediction(self.X, model_id, project_id)
         # compute score
         score = self.mse(pred, self.y)
         self.assertTrue(score < 0.1)
+        # check if dataset was removed
+        self.assertEqual(init_datasets_cnt, len(dc.get_datasets()))
+        # run predictions again, but keep dataset
+        pred = Mljar.compute_prediction(self.X, model_id, project_id, keep_dataset = True)
+        self.assertEqual(init_datasets_cnt+1, len(dc.get_datasets())) # should be one more
+
 
     def test_basic_usage(self):
         '''
         Test the most common usage.
         '''
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
-                        algorithms = ['xgb'], metric='logloss',
-                        validation_kfolds=3, tuning_mode='Normal')
+                        algorithms = ['xgb'], metric = 'logloss',
+                        validation_kfolds = 3, tuning_mode = 'Normal',
+                        single_algorithm_time_limit = 1)
         self.assertTrue(model is not None)
         # fit models and wait till all models are trained
         model.fit(X = self.X, y = self.y)
@@ -97,7 +107,8 @@ class MljarTest(ProjectBasedTest):
         Test usage with train split.
         '''
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
-                    validation_train_split = 0.8, algorithms = ['xgb'], tuning_mode='Normal')
+                    validation_train_split = 0.8, algorithms = ['xgb'], tuning_mode='Normal',
+                    single_algorithm_time_limit=1)
         self.assertTrue(model is not None)
         # fit models and wait till all models are trained
         model.fit(X = self.X, y = self.y, wait_till_all_done = False)
@@ -117,7 +128,8 @@ class MljarTest(ProjectBasedTest):
         Test usage with validation dataset.
         '''
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
-                            algorithms = ['xgb'], tuning_mode='Normal')
+                            algorithms = ['xgb'], tuning_mode='Normal',
+                            single_algorithm_time_limit = 1)
         self.assertTrue(model is not None)
         # load validation data
         df = pd.read_csv('tests/data/test_1_vald.csv')
@@ -174,7 +186,8 @@ class MljarTest(ProjectBasedTest):
         '''
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
                         algorithms = ['xgb'], metric='logloss',
-                        validation_kfolds=3, tuning_mode='Normal')
+                        validation_kfolds=3, tuning_mode='Normal',
+                        single_algorithm_time_limit = 1)
         self.assertTrue(model is not None)
         # fit models, just start computation and do not wait
         start_time = time.time()
@@ -211,8 +224,9 @@ class MljarTest(ProjectBasedTest):
         all models will be simply retrived from existing project.
         '''
         model = Mljar(project = self.proj_title, experiment = self.expt_title,
-                        algorithms = ['xgb'], metric='logloss',
-                        validation_kfolds=3, tuning_mode='Normal')
+                        algorithms = ['xgb'], metric = 'logloss',
+                        validation_kfolds = 3, tuning_mode = 'Normal',
+                        single_algorithm_time_limit = 1)
         self.assertTrue(model is not None)
         # fit models and wait till all models are trained
         model.fit(X = self.X, y = self.y)
@@ -240,8 +254,9 @@ class MljarTest(ProjectBasedTest):
         # re-use project
         start_time = time.time()
         model_2 = Mljar(project = self.proj_title, experiment = self.expt_title,
-                        algorithms = ['xgb'], metric='logloss',
-                        validation_kfolds=3, tuning_mode='Normal')
+                        algorithms = ['xgb'], metric = 'logloss',
+                        validation_kfolds = 3, tuning_mode = 'Normal',
+                        single_algorithm_time_limit = 1)
         self.assertTrue(model_2 is not None)
         # re-use trained models
         model_2.fit(X = self.X, y = self.y)

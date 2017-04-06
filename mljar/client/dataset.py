@@ -4,6 +4,7 @@ import uuid
 import os
 import sys
 import time
+import copy
 from zipfile import ZipFile, ZIP_DEFLATED
 from os.path import basename
 from base import MljarHttpClient
@@ -45,6 +46,12 @@ class DatasetClient(MljarHttpClient):
             logger.error('Dataset not found')
             return None
 
+    def delete_dataset(self, dataset_hid):
+        '''
+        Deletes dataset
+        '''
+        response = self.request("DELETE", '/'.join([self.url, dataset_hid]))
+        return response.status_code == 204 or response.status_code == 200
 
     def _prepare_data(self, X, y):
         '''
@@ -55,22 +62,23 @@ class DatasetClient(MljarHttpClient):
         if isinstance(X, np.ndarray):
             cols = {}
             col_names = []
-            for i in xrange(X.shape[1]):
+            X_cpy = copy.deepcopy(X)
+            for i in xrange(X_cpy.shape[1]):
                 c = 'attribute_'+str(i+1)
-                cols[c] = X[:,i]
+                cols[c] = X_cpy[:,i]
                 col_names += [c]
             if y is not None:
-                cols['target'] = y
+                cols['target'] = copy.deepcopy(y)
                 col_names.append('target')
             data = pd.DataFrame(cols, columns=col_names)
         if isinstance(X, pd.DataFrame):
             if y is not None:
-                data = X
-                data['target'] = y
+                data = copy.deepcopy(X)
+                data['target'] = copy.deepcopy(y)
                 # todo: add search for target like attributes and rename
                 # "target", "class", "loss"
             else:
-                data = X
+                data = copy.deepcopy(X)
 
         dataset_hash = str(make_hash(data))
         return data, dataset_hash

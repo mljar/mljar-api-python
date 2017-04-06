@@ -23,12 +23,13 @@ class DatasetClientTest(ProjectBasedTest):
         df = pd.read_csv('tests/data/test_1.csv')
         cols = ['sepal length', 'sepal width', 'petal length', 'petal width']
         target = 'class'
-        self.X = df[cols]
+        self.X = df.loc[:,cols]
         self.y = df[target]
 
     def tearDown(self):
         # clean
         self.project_client.delete_project(self.project.hid)
+
 
     def test_get_datasests(self):
         """
@@ -117,3 +118,39 @@ class DatasetClientTest(ProjectBasedTest):
         # number of all datasets in project should be 1
         datasets = dc.get_datasets()
         self.assertEqual(len(datasets), init_datasets_cnt+1)
+
+
+    def test_prepare_data_two_sources(self):
+        dc = DatasetClient(self.project.hid)
+        data_1, data_hash_1 = dc._prepare_data(self.X, self.y)
+        data_2, data_hash_2 = dc._prepare_data(self.X, None)
+        self.assertNotEqual(data_hash_1, data_hash_2)
+
+
+    def test_prepare_data_two_sources_numpy(self):
+        dc = DatasetClient(self.project.hid)
+        data_1, data_hash_1 = dc._prepare_data(np.array(self.X), np.array(self.y))
+        data_2, data_hash_2 = dc._prepare_data(np.array(self.X), None)
+        self.assertNotEqual(data_hash_1, data_hash_2)
+
+    def test_create_and_delete(self):
+        # setup dataset client
+        dc = DatasetClient(self.project.hid)
+        self.assertNotEqual(dc, None)
+        # get initial number of datasets
+        init_datasets_cnt = len(dc.get_datasets())
+        # add dataset
+        my_dataset_1 = dc.add_dataset_if_not_exists(self.X, self.y)
+        my_dataset_2 = dc.add_dataset_if_not_exists(self.X, y = None)
+        # get datasets
+        datasets = dc.get_datasets()
+        self.assertEqual(len(datasets), init_datasets_cnt+2)
+        # delete added dataset
+        dc.delete_dataset(my_dataset_1.hid)
+        # check number of datasets
+        datasets = dc.get_datasets()
+        self.assertEqual(len(datasets), init_datasets_cnt+1)
+
+
+if __name__ == "__main__":
+    unittest.main()

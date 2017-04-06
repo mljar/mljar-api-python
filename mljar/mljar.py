@@ -286,6 +286,8 @@ class Mljar(object):
 
         if self.selected_algorithm is not None:
 
+            return Mljar.compute_prediction(X, self.selected_algorithm.hid, self.project.hid)
+            '''
             # chack if dataset exists in mljar if not upload dataset for prediction
             dataset = DatasetClient(self.project.hid).add_dataset_if_not_exists(X, y = None)
 
@@ -317,10 +319,11 @@ class Mljar(object):
             logger.error('Sorry, there was some problem with computing prediction for your dataset. \
                             Please login to mljar.com to your account and check details.')
             return None
+            '''
 
 
     @staticmethod
-    def compute_prediction(X, model_id, project_id):
+    def compute_prediction(X, model_id, project_id, keep_dataset = False):
 
 
         # chack if dataset exists in mljar if not upload dataset for prediction
@@ -344,6 +347,8 @@ class Mljar(object):
             if prediction is not None:
                 pred = PredictionDownloadClient().download(prediction.hid)
                 #sys.stdout.write('\r\n')
+                if not keep_dataset:
+                    DatasetClient(project_id).delete_dataset(dataset.hid)
                 return pred
 
             #sys.stdout.write('\rFetch predictions: {0}%'.format(round(i/(total_checks*0.01))))
