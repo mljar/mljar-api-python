@@ -26,15 +26,37 @@ class MljarTest(ProjectBasedTest):
         self.X = df[cols]
         self.y = df[target]
 
-    def tearDown(self):
-        # clean
-        ProjectBasedTest.clean_projects()
+    #def tearDown(self):
+    #    # clean
+    #    ProjectBasedTest.clean_projects()
 
     def mse(self, predictions, targets):
         predictions = np.array(predictions)
         targets = np.array(targets)
         targets = targets.reshape((targets.shape[0],1))
         return ((predictions - targets) ** 2).mean()
+
+
+    def test_compute_prediction(self):
+        '''
+        Test the most common usage.
+        '''
+        model = Mljar(project = self.proj_title, experiment = self.expt_title,
+                        algorithms = ['rfc'], metric='logloss',
+                        validation_kfolds=3, tuning_mode='Normal')
+        self.assertTrue(model is not None)
+        # fit models and wait till all models are trained
+        model.fit(X = self.X, y = self.y)
+
+        # get project id
+        project_id = model.project.hid
+        # get model id
+        model_id = model.selected_algorithm.hid
+        # compute predictions
+        pred = Mljar.compute_prediction(self.X, model_id, project_id)
+        # compute score
+        score = self.mse(pred, self.y)
+        self.assertTrue(score < 0.1)
 
     def test_basic_usage(self):
         '''

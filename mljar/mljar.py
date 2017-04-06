@@ -24,7 +24,8 @@ class Mljar(object):
     This is a wrapper over MLJAR API - it does all the stuff.
     '''
 
-    def __init__(self, project, experiment,
+    def __init__(self, project,
+                        experiment,
                         metric = '',
                         algorithms = [],
                         validation_kfolds = MLJAR_DEFAULT_FOLDS,
@@ -316,3 +317,40 @@ class Mljar(object):
             logger.error('Sorry, there was some problem with computing prediction for your dataset. \
                             Please login to mljar.com to your account and check details.')
             return None
+
+
+    @staticmethod
+    def compute_prediction(X, model_id, project_id):
+
+
+        # chack if dataset exists in mljar if not upload dataset for prediction
+        dataset = DatasetClient(project_id).add_dataset_if_not_exists(X, y = None)
+
+        # check if prediction is available
+        total_checks = 100
+        for i in xrange(total_checks):
+            prediction = PredictionClient(project_id).\
+                            get_prediction(dataset.hid, model_id)
+
+            # prediction is not available, first check so submit job
+            if i == 0 and prediction is None:
+                # create prediction job
+                submitted = PredictJobClient().submit(project_id, dataset.hid,
+                                                        model_id)
+                if not submitted:
+                    logger.error('Problem with prediction for your dataset')
+                    return None
+
+            if prediction is not None:
+                pred = PredictionDownloadClient().download(prediction.hid)
+                #sys.stdout.write('\r\n')
+                return pred
+
+            #sys.stdout.write('\rFetch predictions: {0}%'.format(round(i/(total_checks*0.01))))
+            #sys.stdout.flush()
+            time.sleep(5)
+
+        #sys.stdout.write('\r\n')
+        logger.error('Sorry, there was some problem with computing prediction for your dataset. \
+                        Please login to mljar.com to your account and check details.')
+        return None
