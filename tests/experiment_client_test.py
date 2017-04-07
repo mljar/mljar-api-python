@@ -4,6 +4,7 @@ ExperimentClient tests.
 import os
 import unittest
 import pandas as pd
+import time
 
 from mljar.client.project import ProjectClient
 from mljar.client.dataset import DatasetClient
@@ -38,8 +39,11 @@ class ExperimentClientTest(ProjectBasedTest):
 
 
     def tearDown(self):
+        # wait before clean, to have time to initialize models
+        time.sleep(60)
         # clean
         self.project_client.delete_project(self.project.hid)
+
 
     def test_create_with_kfold_cv(self):
         """
@@ -161,3 +165,7 @@ class ExperimentClientTest(ProjectBasedTest):
         self.assertEqual(experiment_2.metric, experiment.metric)
         self.assertEqual(experiment_2.validation_scheme, experiment.validation_scheme)
         self.assertTrue(experiment.equal(experiment_2))
+
+
+if __name__ == "__main__":
+    unittest.main()
