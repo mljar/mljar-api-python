@@ -330,7 +330,7 @@ class Mljar(object):
         dataset = DatasetClient(project_id).add_dataset_if_not_exists(X, y = None)
 
         # check if prediction is available
-        total_checks = 500
+        total_checks = 1000
         for i in xrange(total_checks):
             prediction = PredictionClient(project_id).\
                             get_prediction(dataset.hid, model_id)
