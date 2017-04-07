@@ -330,7 +330,7 @@ class Mljar(object):
         dataset = DatasetClient(project_id).add_dataset_if_not_exists(X, y = None)
 
         # check if prediction is available
-        total_checks = 100
+        total_checks = 500
         for i in xrange(total_checks):
             prediction = PredictionClient(project_id).\
                             get_prediction(dataset.hid, model_id)
@@ -353,7 +353,7 @@ class Mljar(object):
 
             #sys.stdout.write('\rFetch predictions: {0}%'.format(round(i/(total_checks*0.01))))
             #sys.stdout.flush()
-            time.sleep(5)
+            time.sleep(10)
 
         #sys.stdout.write('\r\n')
         logger.error('Sorry, there was some problem with computing prediction for your dataset. \
