@@ -82,6 +82,7 @@ def make_hash(item):
         values = tuple(tuple(x) for x in item.values)
         item = tuple([index, values])
     elif isinstance(item, np.ndarray):
+        item = item.copy(order='C')
         return hashlib.sha1(item).hexdigest()
     try:
         return hash(item)

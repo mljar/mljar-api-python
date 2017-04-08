@@ -125,7 +125,7 @@ class DatasetClient(MljarHttpClient):
         datasets = self.get_datasets()
         dataset_details = [d for d in datasets if d.dataset_hash == dataset_hash]
         # dataset with specified hash does not exist
-        if len(dataset_details) != 1:
+        if len(dataset_details) == 0:
             # add new dataset
             dataset_details = self.add_new_dataset(data, y, title_prefix)
         else:
