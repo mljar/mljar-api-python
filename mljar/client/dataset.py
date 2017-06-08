@@ -110,7 +110,7 @@ class DatasetClient(MljarHttpClient):
 
 
 
-    def add_dataset_if_not_exists(self, X, y, title_prefix = 'dataset-'):
+    def add_dataset_if_not_exists(self, X, y, title_prefix = 'dataset-', dataset_title = None):
         '''
         Checks if dataset already exists, if not it add dataset to project.
         '''
@@ -127,7 +127,7 @@ class DatasetClient(MljarHttpClient):
         # dataset with specified hash does not exist
         if len(dataset_details) == 0:
             # add new dataset
-            dataset_details = self.add_new_dataset(data, y, title_prefix)
+            dataset_details = self.add_new_dataset(data, y, title_prefix, dataset_title)
         else:
             dataset_details = dataset_details[0]
 
@@ -157,9 +157,12 @@ class DatasetClient(MljarHttpClient):
         return response.status_code == 200
 
 
-    def add_new_dataset(self, data, y, title_prefix = 'dataset-'):
+    def add_new_dataset(self, data, y, title_prefix = 'dataset-', dataset_title = None):
         logger.info('Add new dataset')
-        title = title_prefix + str(uuid.uuid4())[:4] # set some random name
+        if dataset_title is None:
+            title = title_prefix + str(uuid.uuid4())[:4] # set some random name
+        else:
+            title = dataset_title
         file_path = '/tmp/dataset-'+ str(uuid.uuid4())[:8]+'.csv'
 
         logger.info('Compress data before export')

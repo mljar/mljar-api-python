@@ -46,7 +46,7 @@ class MljarTest(ProjectBasedTest):
                         single_algorithm_time_limit = 1)
         self.assertTrue(model is not None)
         # fit models and wait till all models are trained
-        model.fit(X = self.X, y = self.y)
+        model.fit(X = self.X, y = self.y, dataset_title = 'My dataset')
 
         # get project id
         project_id = model.project.hid

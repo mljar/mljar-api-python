@@ -122,7 +122,7 @@ class Mljar(object):
                 raise MljarException('Wrong validation_train_split parameter value, it should be in (0.05, 0.95) range.')
 
 
-    def fit(self, X, y, validation_data = None, wait_till_all_done = True):
+    def fit(self, X, y, validation_data = None, wait_till_all_done = True, dataset_title = None):
         '''
         Fit models with MLJAR engine.
         Args:
@@ -132,6 +132,8 @@ class Mljar(object):
                                 the k-fold CV or train split validation will be used.
             wait_till_all_done: The flag which decides if fit function will wait
                                 till experiment is done.
+            dataset_title: The title of your dataset. It is optional. If missing the
+                            random title will be generated.
         '''
         self.wait_till_all_done = wait_till_all_done
         # check input data dimensions
@@ -141,12 +143,12 @@ class Mljar(object):
             raise IncorrectInputDataException('Sorry, there is a missmatch between X and y matrices shapes')
 
         try:
-            self._start_experiment(X, y, validation_data)
+            self._start_experiment(X, y, validation_data, dataset_title)
         except Exception as e:
             print 'Ups, %s' % str(e)
 
 
-    def _start_experiment(self, X, y, validation_data = None):
+    def _start_experiment(self, X, y, validation_data = None, dataset_title = None):
 
         # define project task
         self.project_task = 'bin_class' if len(np.unique(y)) == 2 else 'reg'
@@ -159,7 +161,7 @@ class Mljar(object):
         # add a dataset to project
         #
         logger.info('MLJAR: add training dataset')
-        self.dataset = DatasetClient(self.project.hid).add_dataset_if_not_exists(X, y, title_prefix = 'Training-')
+        self.dataset = DatasetClient(self.project.hid).add_dataset_if_not_exists(X, y, title_prefix = 'Training-', dataset_title = dataset_title)
 
         self.dataset_vald = None
         if validation_data is not None:
