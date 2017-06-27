@@ -196,6 +196,8 @@ class Mljar(object):
         WAIT_INTERVAL = 10.0
         loop_max_counter = 24*360 # 24 hours of max waiting, is enough ;)
         results = None
+        max_error_cnt = 5
+        current_error_cnt = 0
         while True:
             loop_max_counter -= 1
             if loop_max_counter <= 0:
@@ -222,6 +224,9 @@ class Mljar(object):
                 break
             except Exception as e:
                 logger.error('There is some problem while waiting for models, %s' % str(e))
+                current_error_cnt += 1
+                if current_error_cnt >= max_error_cnt:
+                    break
         logger.info('Get the best result')
         print '' # add new line
         # get the best result!
@@ -325,11 +330,11 @@ class Mljar(object):
 
 
     @staticmethod
-    def compute_prediction(X, model_id, project_id, keep_dataset = False):
+    def compute_prediction(X, model_id, project_id, keep_dataset = False, dataset_title = None):
 
 
         # chack if dataset exists in mljar if not upload dataset for prediction
-        dataset = DatasetClient(project_id).add_dataset_if_not_exists(X, y = None)
+        dataset = DatasetClient(project_id).add_dataset_if_not_exists(X, y = None, title_prefix = 'Testing-', dataset_title = dataset_title)
 
         # check if prediction is available
         total_checks = 1000
