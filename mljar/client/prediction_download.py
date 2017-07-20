@@ -1,5 +1,6 @@
 import os
 import uuid
+import tempfile
 import pandas as pd
 from base import MljarHttpClient
 from ..exceptions import PredictionDownloadException
@@ -18,7 +19,7 @@ class PredictionDownloadClient(MljarHttpClient):
         response = self.request("POST", self.url, data = {"prediction_id": prediction_hid}, parse_json=False)
         pred = None
         try:
-            tmp_file = '/tmp/mljar_prediction_' + str(uuid.uuid4()) + '.csv'
+            tmp_file = os.path.join(tempfile.gettempdir(), 'mljar_prediction_' + str(uuid.uuid4()) + '.csv')
             with open(tmp_file, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=1024):
                     if chunk: # filter out keep-alive new chunks

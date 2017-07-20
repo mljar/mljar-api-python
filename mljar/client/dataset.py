@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import copy
+import tempfile
 from zipfile import ZipFile, ZIP_DEFLATED
 from os.path import basename
 from base import MljarHttpClient
@@ -163,7 +164,8 @@ class DatasetClient(MljarHttpClient):
             title = title_prefix + str(uuid.uuid4())[:4] # set some random name
         else:
             title = dataset_title
-        file_path = '/tmp/dataset-'+ str(uuid.uuid4())[:8]+'.csv'
+
+        file_path = os.path.join(tempfile.gettempdir(), 'dataset-'+ str(uuid.uuid4())[:8]+'.csv')
 
         logger.info('Compress data before export')
         prediction_only = y is None
