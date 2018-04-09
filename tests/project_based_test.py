@@ -25,6 +25,6 @@ class ProjectBasedTest(unittest.TestCase):
     def setUpClass(cls):
         ProjectBasedTest.clean_projects()
 
-    @classmethod
-    def tearDownClass(cls):
-        ProjectBasedTest.clean_projects()
+    #@classmethod
+    #def tearDownClass(cls):
+    #    ProjectBasedTest.clean_projects()

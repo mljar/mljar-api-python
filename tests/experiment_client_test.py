@@ -40,15 +40,16 @@ class ExperimentClientTest(ProjectBasedTest):
 
     def tearDown(self):
         # wait before clean, to have time to initialize models
-        time.sleep(60)
+        #time.sleep(60)
         # clean
-        self.project_client.delete_project(self.project.hid)
+        #self.project_client.delete_project(self.project.hid)
+        pass
 
-
+    '''
     def test_create_with_kfold_cv(self):
-        """
-        Create experiment test with k-fold CV.
-        """
+
+        #Create experiment test with k-fold CV.
+
         # add experiment
         ec = ExperimentClient(self.project.hid)
         self.assertNotEqual(ec, None)
@@ -82,9 +83,9 @@ class ExperimentClientTest(ProjectBasedTest):
         self.assertTrue('validation' in str(experiment_2))
 
     def test_create_with_train_split(self):
-        """
-        Create experiment with validation by train split.
-        """
+
+        #Create experiment with validation by train split.
+
         # add experiment
         ec = ExperimentClient(self.project.hid)
         self.assertNotEqual(ec, None)
@@ -103,9 +104,9 @@ class ExperimentClientTest(ProjectBasedTest):
 
 
     def test_create_with_validation_dataset(self):
-        """
-        Create experiment with validation with dataset.
-        """
+
+        #Create experiment with validation with dataset.
+
         # add vald dataset
         cols = ['sepal length', 'sepal width', 'petal length', 'petal width']
         target = 'class'
@@ -128,13 +129,14 @@ class ExperimentClientTest(ProjectBasedTest):
         self.assertEqual(experiment.title, self.expt_title)
         self.assertEqual(experiment.validation_scheme, "With dataset")
 
-
+    '''
     def test_create_if_exists(self):
-        '''
-        Create experiment after experiment is already in project.
-        '''
+
+        #Create experiment after experiment is already in project.
+
         # add experiment
         ec = ExperimentClient(self.project.hid)
+        print ('Project',self.project.hid)
         self.assertNotEqual(ec, None)
         # there should be none experiments
         experiments = ec.get_experiments()

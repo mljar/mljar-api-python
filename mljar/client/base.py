@@ -54,7 +54,7 @@ class MljarHttpClient(object):
         if not (200 <= response.status_code < 300):
             try:
                 message = response.json()["errors"]
-            except Exception:
+            except Exception as e:
                 message = None
             logger.debug("Error received : status_code: {}, message: {}".format(response.status_code,
                                                                                       message or response.content))
@@ -64,6 +64,8 @@ class MljarHttpClient(object):
             elif response.status_code == 404:
                 raise NotFoundException()
             elif response.status_code == 400:
-                raise BadRequestException()
+                raise BadRequestException(response.content)
+            elif response.status_code == 500:
+                raise MljarException('server error: ' +response.content)
             else:
                 response.raise_for_status()
