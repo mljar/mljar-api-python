@@ -18,5 +18,10 @@ setup(
     author_email='contact@mljar.com',
     license='Apache-2.0',
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
-    install_requires=['requests', 'marshmallow']
+    install_requires=['requests', 'marshmallow'],
+    classifiers=(
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6'
+    ),
 )
