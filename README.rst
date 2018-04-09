@@ -1,4 +1,4 @@
-|Build Status| |PyPI version| |Coverage Status|
+|Build Status| |PyPI version| |Coverage Status| |PyPI pyversions|
 
 mljar-api-python
 ================

@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/mljar/mljar-api-python.svg?branch=master)](https://travis-ci.org/mljar/mljar-api-python)
 [![PyPI version](https://badge.fury.io/py/mljar.svg)](https://badge.fury.io/py/mljar)
 [![Coverage Status](https://coveralls.io/repos/github/mljar/mljar-api-python/badge.svg?branch=master)](https://coveralls.io/github/mljar/mljar-api-python?branch=master)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/mljar.svg)](https://pypi.python.org/pypi/mljar/)
 
 # mljar-api-python
 
