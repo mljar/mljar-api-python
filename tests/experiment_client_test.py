@@ -10,12 +10,12 @@ from mljar.client.project import ProjectClient
 from mljar.client.dataset import DatasetClient
 from mljar.client.experiment import ExperimentClient
 
-from .project_based_test import ProjectBasedTest
+from .project_based_test import ProjectBasedTest, get_postfix
 
 class ExperimentClientTest(ProjectBasedTest):
 
     def setUp(self):
-        proj_title = 'Test project-01'
+        proj_title = 'Test project-01'+get_postfix()
         proj_task = 'bin_class'
         self.expt_title = 'Test experiment-01'
         self.validation_kfolds = 5

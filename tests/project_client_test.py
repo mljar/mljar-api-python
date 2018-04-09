@@ -5,6 +5,8 @@ import os
 import unittest
 
 from mljar.client.project import ProjectClient
+from .project_based_test import get_postfix
+
 class ProjectClientTest(unittest.TestCase):
 
     def test_create_and_delete(self):
@@ -12,7 +14,7 @@ class ProjectClientTest(unittest.TestCase):
         Get list of projects, add new project, again get lists of projects and
         compare if new list length is greater than old one.
         '''
-        proj_title = 'Test project-01'
+        proj_title = 'Test project-01'+get_postfix()
         proj_task = 'bin_class'
         pc = ProjectClient()
         projects_before = pc.get_projects()
@@ -29,7 +31,7 @@ class ProjectClientTest(unittest.TestCase):
         '''
         Test project get method.
         '''
-        proj_title = 'Test project-02'
+        proj_title = 'Test project-02'+get_postfix()
         proj_task = 'bin_class'
         pc = ProjectClient()
         projects_before = pc.get_projects()

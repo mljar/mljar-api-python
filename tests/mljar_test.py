@@ -17,7 +17,7 @@ from mljar import Mljar
 class MljarTest(ProjectBasedTest):
 
     def setUp(self):
-        self.proj_title = 'Test project-01'
+        self.proj_title = 'Test project-01'+get_postfix()
         self.proj_task = 'bin_class'
         self.expt_title = 'Test expt 1'
         # load data

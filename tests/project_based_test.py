@@ -4,8 +4,12 @@ ProjectBasedTest tests.
 import os
 import unittest
 import pandas as pd
+import sys
 
 from mljar.client.project import ProjectClient
+
+def get_postfix():
+    return '-v-'+str(sys.version_info.major)
 
 class ProjectBasedTest(unittest.TestCase):
 

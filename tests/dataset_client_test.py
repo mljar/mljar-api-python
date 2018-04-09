@@ -9,12 +9,12 @@ import numpy as np
 from mljar.client.project import ProjectClient
 from mljar.client.dataset import DatasetClient
 
-from .project_based_test import ProjectBasedTest
+from .project_based_test import ProjectBasedTest, get_postfix
 
 class DatasetClientTest(ProjectBasedTest):
 
     def setUp(self):
-        proj_title = 'Test project-01'
+        proj_title = 'Test project-01'+get_postfix()
         proj_task = 'bin_class'
         # setup project
         self.project_client = ProjectClient()
