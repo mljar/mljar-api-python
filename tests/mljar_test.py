@@ -83,25 +83,7 @@ class MljarTest(ProjectBasedTest):
         # get MSE
         score = self.mse(pred, self.y)
         self.assertTrue(score < 0.1)
-    '''
-    def test_usage_with_defaults(self):
-        # it takes too long on travis: TEST DISABLED
-        #Test usage with defaults.
 
-        model = Mljar(project = self.proj_title, experiment = self.expt_title)
-        self.assertTrue(model is not None)
-        # fit models and wait till all models are trained
-        model.fit(X = self.X, y = self.y, wait_till_all_done = False)
-        # wait some time
-        time.sleep(120) # wait a little longer - there are a lot of models
-        # run prediction
-        pred = model.predict(self.X)
-        # get MSE
-        score = self.mse(pred, self.y)
-        self.assertTrue(score < 0.95)
-        # check default validation
-        self.assertEqual(model.selected_algorithm.validation_scheme, "5-fold CV, Shuffle, Stratify")
-    '''
     def test_usage_with_train_split(self):
 
         #Test usage with train split.
@@ -143,7 +125,6 @@ class MljarTest(ProjectBasedTest):
         time.sleep(80)
         # run prediction
         pred = model.predict(self.X)
-        print('1) PRED', pred)
         # get MSE
         score = self.mse(pred, self.y)
         self.assertTrue(score < 0.5)
@@ -270,23 +251,6 @@ class MljarTest(ProjectBasedTest):
         self.assertTrue(score_3 < 0.1)
         # scores should be the same
         self.assertTrue(np.abs(score-score_3) < 1e-3)
-
-    '''
-    # comment out because it took too long on travis-ci to run
-    def test_basic_usage_with_defaults(self):
-
-        #Test the most common usage with defults settings.
-
-        model = Mljar(project = self.proj_title, experiment = self.expt_title)
-        self.assertNotEqual(model, None)
-        # fit models and wait till all models are trained
-        model.fit(X = self.X, y = self.y)
-        # run prediction
-        pred = model.predict(self.X)
-        # get MSE
-        score = self.mse(pred, self.y)
-        self.assertTrue(score < 0.1)
-    '''
-
+    
 if __name__ == "__main__":
     unittest.main()
