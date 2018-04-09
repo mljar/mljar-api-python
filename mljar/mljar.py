@@ -339,7 +339,7 @@ class Mljar(object):
 
         # check if prediction is available
         total_checks = 1000
-        for i in xrange(total_checks):
+        for i in range(total_checks):
             prediction = PredictionClient(project_id).\
                             get_prediction(dataset.hid, model_id)
 
