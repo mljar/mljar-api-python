@@ -44,8 +44,6 @@ class ExperimentClientTest(ProjectBasedTest):
         # clean
         self.project_client.delete_project(self.project.hid)
 
-
-    '''
     def test_create_with_kfold_cv(self):
 
         #Create experiment test with k-fold CV.
@@ -129,14 +127,13 @@ class ExperimentClientTest(ProjectBasedTest):
         self.assertEqual(experiment.title, self.expt_title)
         self.assertEqual(experiment.validation_scheme, "With dataset")
 
-    '''
+
     def test_create_if_exists(self):
 
         #Create experiment after experiment is already in project.
 
         # add experiment
         ec = ExperimentClient(self.project.hid)
-        print ('Project',self.project.hid)
         self.assertNotEqual(ec, None)
         # there should be none experiments
         experiments = ec.get_experiments()
