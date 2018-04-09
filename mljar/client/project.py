@@ -1,6 +1,7 @@
 from .base import MljarHttpClient
 from ..model.project import Project
 from ..exceptions import NotFoundException, CreateProjectException
+from ..log import logger
 
 class ProjectClient(MljarHttpClient):
     '''
@@ -49,6 +50,7 @@ class ProjectClient(MljarHttpClient):
         '''
         Deletes project
         '''
+        logger.info('Remove project: %s' % hid)
         response = self.request("DELETE", '/'.join([self.url, hid]))
         return response.status_code == 204 or response.status_code == 200
 

@@ -40,10 +40,10 @@ class ExperimentClientTest(ProjectBasedTest):
 
     def tearDown(self):
         # wait before clean, to have time to initialize models
-        #time.sleep(60)
+        time.sleep(60)
         # clean
-        #self.project_client.delete_project(self.project.hid)
-        pass
+        self.project_client.delete_project(self.project.hid)
+
 
     '''
     def test_create_with_kfold_cv(self):

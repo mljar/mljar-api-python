@@ -18,13 +18,13 @@ class ProjectBasedTest(unittest.TestCase):
         project_client = ProjectClient()
         projects = project_client.get_projects()
         for proj in projects:
-            if proj.title.startswith('Test'):
+            if proj.title.startswith('Test') and proj.title.endswith(get_postfix()):
                 project_client.delete_project(proj.hid)
 
     @classmethod
     def setUpClass(cls):
         ProjectBasedTest.clean_projects()
 
-    #@classmethod
-    #def tearDownClass(cls):
-    #    ProjectBasedTest.clean_projects()
+    @classmethod
+    def tearDownClass(cls):
+        ProjectBasedTest.clean_projects()

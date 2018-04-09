@@ -32,15 +32,15 @@ class DatasetClientTest(ProjectBasedTest):
 
 
     def test_get_datasests(self):
-        """
-        Get empty list of datasets in project.
-        """
+
+        #Get empty list of datasets in project.
+
         # get datasets
         datasets = DatasetClient(self.project.hid).get_datasets()
         self.assertEqual(datasets, [])
 
     def test_prepare_data(self):
-        """ Test _prepare_data method on numpy array data """
+        #Test _prepare_data method on numpy array data
         dc = DatasetClient(self.project.hid)
         samples = 100
         columns = 10
@@ -56,7 +56,7 @@ class DatasetClientTest(ProjectBasedTest):
         self.assertTrue('attribute_10' in data.columns)
 
     def test_get_dataset_for_wrong_hid(self):
-        """ Get dataset for wrong hid should return None """
+        #Get dataset for wrong hid should return None
         dc = DatasetClient(self.project.hid)
         dataset = dc.get_dataset('some-wrong-hid')
         self.assertTrue(dataset is None)
@@ -82,7 +82,6 @@ class DatasetClientTest(ProjectBasedTest):
         self.assertTrue('title' in str(my_dataset_2))
         self.assertTrue('file' in str(my_dataset_2))
 
-
     def test_add_dataset_for_prediction(self):
         # setup dataset client
         dc = DatasetClient(self.project.hid)
@@ -99,7 +98,6 @@ class DatasetClientTest(ProjectBasedTest):
         my_dataset_2 = dc.get_dataset(my_dataset.hid)
         self.assertEqual(my_dataset.hid, my_dataset_2.hid)
         self.assertEqual(my_dataset.title, my_dataset_2.title)
-
 
     def test_add_existing_dataset(self):
         # setup dataset client
@@ -119,13 +117,11 @@ class DatasetClientTest(ProjectBasedTest):
         datasets = dc.get_datasets()
         self.assertEqual(len(datasets), init_datasets_cnt+1)
 
-
     def test_prepare_data_two_sources(self):
         dc = DatasetClient(self.project.hid)
         data_1, data_hash_1 = dc._prepare_data(self.X, self.y)
         data_2, data_hash_2 = dc._prepare_data(self.X, None)
         self.assertNotEqual(data_hash_1, data_hash_2)
-
 
     def test_prepare_data_two_sources_numpy(self):
         dc = DatasetClient(self.project.hid)

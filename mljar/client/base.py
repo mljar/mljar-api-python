@@ -66,6 +66,6 @@ class MljarHttpClient(object):
             elif response.status_code == 400:
                 raise BadRequestException(response.content)
             elif response.status_code == 500:
-                raise MljarException('server error: ' +response.content)
+                raise MljarException('server error: ' +str(response.content))
             else:
                 response.raise_for_status()
