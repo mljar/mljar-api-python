@@ -9,7 +9,7 @@ import time
 
 from mljar.client.project import ProjectClient
 from mljar.client.dataset import DatasetClient
-from .project_based_test import ProjectBasedTest
+from .project_based_test import ProjectBasedTest, get_postfix
 from mljar.exceptions import BadValueException, IncorrectInputDataException
 from mljar.utils import MLJAR_DEFAULT_TUNING_MODE
 from mljar import Mljar
