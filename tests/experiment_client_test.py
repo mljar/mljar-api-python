@@ -10,7 +10,7 @@ from mljar.client.project import ProjectClient
 from mljar.client.dataset import DatasetClient
 from mljar.client.experiment import ExperimentClient
 
-from project_based_test import ProjectBasedTest
+from .project_based_test import ProjectBasedTest
 
 class ExperimentClientTest(ProjectBasedTest):
 

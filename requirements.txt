@@ -2,3 +2,4 @@ requests>=2.2.1
 marshmallow>=2.12.1
 numpy==1.14.2
 pandas==0.22.0
+future

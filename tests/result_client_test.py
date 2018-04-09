@@ -12,7 +12,7 @@ from mljar.client.experiment import ExperimentClient
 from mljar.client.result import ResultClient
 from mljar.exceptions import BadRequestException
 
-from project_based_test import ProjectBasedTest
+from .project_based_test import ProjectBasedTest
 
 class ResultClientTest(ProjectBasedTest):
 
