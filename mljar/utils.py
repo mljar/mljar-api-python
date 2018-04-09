@@ -1,6 +1,8 @@
+from __future__ import unicode_literals
 import pandas as pd
 import numpy as np
 import hashlib
+import sys
 '''
 MLJAR Constants
 '''
@@ -72,20 +74,19 @@ MLJAR_OPT_MAXIMIZE = ['auc']
 Function to compute datasets hash, to not upload several times the same dataset.
 '''
 def make_hash(item):
-    if isinstance(item, pd.DataFrame):
-        index = tuple(item.index)
-        columns = tuple(item.columns)
-        values = tuple(tuple(x) for x in item.values)
-        item = tuple([index, columns, values])
-    elif isinstance(item, pd.Series):
-        index = tuple(item.index)
-        values = tuple(tuple(x) for x in item.values)
-        item = tuple([index, values])
+    if isinstance(item, pd.DataFrame) or isinstance(item, pd.Series):
+        if sys.version_info.major == 2:
+            values = [str(x).replace(' ', '').encode('utf-8') for x in item.values]
+        else:
+            values = [str(x).replace(' ', '') for x in item.values]
+        item = values
     elif isinstance(item, np.ndarray):
         item = item.copy(order='C')
         return hashlib.sha1(item).hexdigest()
     try:
-        return hash(item)
+        i = str(item).encode('utf-8')
+        h = hashlib.md5(i).hexdigest()
+        return h
     except TypeError:
         try:
             # this might act funny if a thing is convertible to tuple but the tuple

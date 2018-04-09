@@ -9,7 +9,7 @@ import numpy as np
 from mljar.client.project import ProjectClient
 from mljar.client.dataset import DatasetClient
 
-from project_based_test import ProjectBasedTest
+from .project_based_test import ProjectBasedTest
 
 class DatasetClientTest(ProjectBasedTest):
 

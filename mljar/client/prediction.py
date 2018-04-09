@@ -1,4 +1,4 @@
-from base import MljarHttpClient
+from .base import MljarHttpClient
 from ..model.prediction import Prediction
 from ..exceptions import NotFoundException
 

@@ -1,5 +1,5 @@
 import json
-from base import MljarHttpClient
+from .base import MljarHttpClient
 from ..exceptions import FileUploadException
 
 from ..log import logger

@@ -1,4 +1,4 @@
-from base import MljarHttpClient
+from .base import MljarHttpClient
 from ..model.dataset import Dataset
 from ..exceptions import FileUploadException
 
@@ -22,10 +22,10 @@ class DataUploadClient(MljarHttpClient):
         url_data = self._get_signed_url(project_hid, file_path)
         signed_url = url_data['signed_url']
         dst_path   = url_data['destination_path']
-        response = self.request("PUT", signed_url, data=open(file_path, 'rb').read(),
+        with open(file_path, 'rb') as fin:
+            response = self.request("PUT", signed_url, data=fin.read(),
                                             with_header=False, url_outside_mljar=True,
                                             parse_json=False)
-
-        if response.status_code != 200:
-            raise FileUploadException('There was a problem with data upload into MLJAR')
+            if response.status_code != 200:
+                raise FileUploadException('There was a problem with data upload into MLJAR')
         return dst_path

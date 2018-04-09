@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import uuid
 import sys
@@ -5,19 +6,19 @@ import json, requests
 import time
 import numpy as np
 
-from utils import *
-from exceptions import IncorrectInputDataException, UndefinedExperimentException
-from exceptions import MljarException, BadValueException
+from .utils import *
+from .exceptions import IncorrectInputDataException, UndefinedExperimentException
+from .exceptions import MljarException, BadValueException
 
-from client.project import ProjectClient
-from client.dataset import DatasetClient
-from client.experiment import ExperimentClient
-from client.result import ResultClient
-from client.prediction import PredictionClient
-from client.predictjob import PredictJobClient
-from client.prediction_download import PredictionDownloadClient
+from .client.project import ProjectClient
+from .client.dataset import DatasetClient
+from .client.experiment import ExperimentClient
+from .client.result import ResultClient
+from .client.prediction import PredictionClient
+from .client.predictjob import PredictJobClient
+from .client.prediction_download import PredictionDownloadClient
 
-from log import logger
+from .log import logger
 
 class Mljar(object):
     '''
@@ -145,7 +146,7 @@ class Mljar(object):
         try:
             self._start_experiment(X, y, validation_data, dataset_title)
         except Exception as e:
-            print 'Ups, %s' % str(e)
+            print('Ups, {0}'.format(str(e)))
 
 
     def _start_experiment(self, X, y, validation_data = None, dataset_title = None):
@@ -228,7 +229,7 @@ class Mljar(object):
                 if current_error_cnt >= max_error_cnt:
                     break
         logger.info('Get the best result')
-        print '' # add new line
+        print('') # add new line
         # get the best result!
         return self._get_the_best_result(results)
 
@@ -274,21 +275,21 @@ class Mljar(object):
 
     def predict(self, X):
         if self.project is None or self.experiment is None:
-            print 'Can not run prediction.'
-            print 'Please run fit method first, to start models training and to retrieve them ;)'
+            print('Can not run prediction.')
+            print('Please run fit method first, to start models training and to retrieve them ;)')
             return None
         if self.selected_algorithm is None:
             results = ResultClient(self.project.hid).get_results(self.experiment.hid)
             self.selected_algorithm = self._get_the_best_result(results)
             if self.experiment.compute_now != 2:
                 if self.selected_algorithm is not None:
-                    print 'DISCLAIMER:'
-                    print 'Your experiment is not yet finished.'
-                    print 'You will use the best model up to now.'
-                    print 'You can obtain better results if you wait till experiment is finished.'
+                    print('DISCLAIMER:')
+                    print('Your experiment is not yet finished.')
+                    print('You will use the best model up to now.')
+                    print('You can obtain better results if you wait till experiment is finished.')
                 else:
-                    print 'There is no ready model to use for prediction.'
-                    print 'Please wait and try in a moment'
+                    print('There is no ready model to use for prediction.')
+                    print('Please wait and try in a moment')
                     return None
 
         if self.selected_algorithm is not None:

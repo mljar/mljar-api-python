@@ -1,11 +1,12 @@
+from __future__ import print_function 
 import json
 import warnings
-from base import MljarHttpClient
+from .base import MljarHttpClient
 from ..model.experiment import Experiment
 from ..exceptions import NotFoundException, MljarException, CreateExperimentException
 from ..exceptions import UndefinedExperimentException
 
-from dataupload import DataUploadClient
+from .dataupload import DataUploadClient
 from ..log import logger
 
 from ..utils import make_hash
@@ -115,12 +116,12 @@ class ExperimentClient(MljarHttpClient):
             # check if experiment with the same title has different parameters
             for expt in experiments:
                 if not expt.equal(new_expt):
-                    print 'The experiment with specified title already exists, but it has different parameters than you specified.'
-                    print 'Existing experiment'
-                    print str(expt)
-                    print 'New experiment'
-                    print str(new_expt)
-                    print 'Please rename your new experiment with new parameters setup.'
+                    print('The experiment with specified title already exists, but it has different parameters than you specified.')
+                    print('Existing experiment')
+                    print(str(expt))
+                    print('New experiment')
+                    print(str(new_expt))
+                    print('Please rename your new experiment with new parameters setup.')
                     return None
             # there is only one experiment with selected title and has the same parameters
             # this is our experiment :)

@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields, post_load
 
-from base import BaseModel
+from .base import BaseModel
 
 class ExperimentSchema(Schema):
     hid = fields.Str()

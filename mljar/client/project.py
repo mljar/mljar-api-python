@@ -1,4 +1,4 @@
-from base import MljarHttpClient
+from .base import MljarHttpClient
 from ..model.project import Project
 from ..exceptions import NotFoundException, CreateProjectException
 

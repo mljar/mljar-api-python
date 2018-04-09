@@ -2,7 +2,7 @@ import os
 import uuid
 import tempfile
 import pandas as pd
-from base import MljarHttpClient
+from .base import MljarHttpClient
 from ..exceptions import PredictionDownloadException
 
 from ..log import logger

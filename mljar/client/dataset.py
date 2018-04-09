@@ -1,3 +1,4 @@
+from builtins import range
 import numpy as np
 import pandas as pd
 import uuid
@@ -8,11 +9,11 @@ import copy
 import tempfile
 from zipfile import ZipFile, ZIP_DEFLATED
 from os.path import basename
-from base import MljarHttpClient
+from .base import MljarHttpClient
 from ..model.dataset import Dataset
 from ..exceptions import NotFoundException, MljarException, CreateDatasetException, DatasetUnknownException
 
-from dataupload import DataUploadClient
+from .dataupload import DataUploadClient
 from ..log import logger
 
 from ..utils import make_hash
@@ -64,7 +65,7 @@ class DatasetClient(MljarHttpClient):
             cols = {}
             col_names = []
             X_cpy = copy.deepcopy(X)
-            for i in xrange(X_cpy.shape[1]):
+            for i in range(X_cpy.shape[1]):
                 c = 'attribute_'+str(i+1)
                 cols[c] = X_cpy[:,i]
                 col_names += [c]
@@ -92,7 +93,7 @@ class DatasetClient(MljarHttpClient):
         '''
         logger.info('Wait till all datasets are valid')
         total_checks = 120
-        for i in xrange(total_checks):
+        for i in range(total_checks):
             datasets = self.get_datasets()
             if datasets is not None:
                 logger.info('There are %s datasets' % len(datasets))
