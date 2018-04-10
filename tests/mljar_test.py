@@ -251,7 +251,7 @@ class MljarTest(ProjectBasedTest):
         self.assertTrue(score_3 < 0.1)
         # scores should be the same
         self.assertTrue(np.abs(score-score_3) < 1e-3)
-    '''
+    
 
 if __name__ == "__main__":
     unittest.main()
